@@ -143,7 +143,6 @@ namespace SummonsTransitionFix
         }
     }
 
-    // PATCH 1 : Protéger les serviteurs de la destruction pure et simple
     [HarmonyPatch(typeof(EntityDataBase), nameof(EntityDataBase.MarkForDestroy))]
     public static class EntityDataBase_MarkForDestroy_Patch
     {
@@ -163,7 +162,6 @@ namespace SummonsTransitionFix
         }
     }
 
-    // PATCH 1bis (NOUVEAU) : Le "Bouclier d'Intégrité" (Empêche l'extinction des buffs et la perte d'allégeance)
     [HarmonyPatch(typeof(EntityDataBase), nameof(EntityDataBase.IsInGame), MethodType.Setter)]
     public static class EntityDataBase_IsInGame_Patch
     {
@@ -171,14 +169,10 @@ namespace SummonsTransitionFix
         {
             if (!Main.Enabled) return true;
 
-            // Si le jeu tente de désactiver l'entité (value == false)
             if (!value && __instance is UnitEntityData unit && Main.IsPlayerMinion(unit))
             {
-                // Si l'unité a été promue dans le cache inter-scènes pour le voyage
                 if (unit.HoldingState != null && unit.HoldingState == Game.Instance.Player?.CrossSceneState)
                 {
-                    // Bloquer le passage à false empêche le moteur d'Owlcat de déclencher Deactivate()
-                    // sur les buffs de la Liche, préservant ainsi la faction alliée et le statut de Mort-Vivant.
                     Main.Logger?.Log($"[SummonsTransitionFix] Maintien de IsInGame=true pour {unit.CharacterName}. (Préserve l'intégrité de la faction et des buffs).");
                     return false; 
                 }
@@ -187,7 +181,6 @@ namespace SummonsTransitionFix
         }
     }
 
-    // PATCH 2 : Promotion globale lors du changement de zone
     [HarmonyPatch(typeof(AreaTransitionGroupCommand), nameof(AreaTransitionGroupCommand.ExecuteTransition))]
     public static class AreaTransitionGroupCommand_ExecuteTransition_Patch
     {
@@ -225,7 +218,6 @@ namespace SummonsTransitionFix
         }
     }
 
-    // PATCH 3 : Gestion de la ré-introduction locale et du repositionnement après transition
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.PositionCharacters))]
     public static class AreaEnterPoint_PositionCharacters_Patch
     {
@@ -272,18 +264,20 @@ namespace SummonsTransitionFix
                         var master = Main.GetMinionMaster(unit);
                         if (master != null)
                         {
-                            unit.Position = master.Position;
-                            unit.Orientation = master.Orientation;
+                            // 1. Couper le "cerveau" et les déplacements en cours pour éviter le retour en arrière
+                            unit.Commands.InterruptAll(true);
                             if (unit.View != null)
                             {
-                                unit.View.transform.position = master.Position;
-                                unit.View.transform.rotation = Quaternion.Euler(0f, master.Orientation, 0f);
-                                unit.View.UpdateViewActive();
+                                unit.View.StopMoving();
                             }
+
+                            // 2. Translocation absolue (Plaque l'unité au sol, gère le Z/Y et désactive le NavMeshAgent temporairement)
+                            unit.Translocate(master.Position, master.Orientation);
                             
+                            // 3. Forcer le réveil
                             unit.IsInGame = true; 
                             
-                            Main.Logger?.Log($"[SummonsTransitionFix] Repositionnement réussi de {unit.CharacterName} près de son maître.");
+                            Main.Logger?.Log($"[SummonsTransitionFix] Repositionnement et Translocation réussis de {unit.CharacterName} près de son maître.");
                         }
                     }
                 }
@@ -295,7 +289,6 @@ namespace SummonsTransitionFix
         }
     }
 	
-    // PATCH 4 : Exclure les serviteurs du calcul de formation de marche pour éviter les IndexOutOfRangeException
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.ShouldMoveCharacterOnAreaEnterPoint))]
     public static class AreaEnterPoint_ShouldMoveCharacterOnAreaEnterPoint_Patch
     {
