@@ -1,0 +1,12 @@
+{
+  "Id": "SummonsTransitionFix",
+  "DisplayName": "Summons Transition Fix",
+  "Author": "LilithSeven",
+  "Version": "1.0.0",
+  "ManagerVersion": "0.32.4",
+  "Requirements": [],
+  "AssemblyName": "SummonsTransitionFix.dll",
+  "EntryMethod": "SummonsTransitionFix.Main.Load",
+  "HomePage": "",
+  "Repository": ""
+}

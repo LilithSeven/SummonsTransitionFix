@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <GamePath>D:\TEST NEW PATHFINDER WOTR\Pathfinder Second Adventure</GamePath>
+    <AssemblyName>SummonsTransitionFix</AssemblyName>
+    <RootNamespace>SummonsTransitionFix</RootNamespace>
+    <Version>1.0.0</Version>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GamePath)\Wrath_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(GamePath)\Wrath_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(GamePath)\Wrath_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(GamePath)\Wrath_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityModManager">
+      <HintPath>$(GamePath)\Wrath_Data\Managed\UnityModManager\UnityModManager.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(GamePath)\Wrath_Data\Managed\UnityModManager\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="references_game\**" />
+    <EmbeddedResource Remove="references_game\**" />
+    <None Remove="references_game\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Info.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Localization\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="CreateZip" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <MakeDir Directories="$(MSBuildProjectDirectory)\bin\Staging\SummonsTransitionFix" />
+    
+    <Copy SourceFiles="$(TargetDir)SummonsTransitionFix.dll" DestinationFolder="$(MSBuildProjectDirectory)\bin\Staging\SummonsTransitionFix" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\Info.json" DestinationFolder="$(MSBuildProjectDirectory)\bin\Staging\SummonsTransitionFix" />
+    
+     <ItemGroup><LocFiles Include="$(MSBuildProjectDirectory)\Localization\**\*.*" /></ItemGroup>
+     <Copy SourceFiles="@(LocFiles)" DestinationFolder="$(MSBuildProjectDirectory)\bin\Staging\SummonsTransitionFix\Localization\%(RecursiveDir)" />
+
+    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)\bin\Staging" DestinationFile="$(MSBuildProjectDirectory)\bin\SummonsTransitionFix-$(Version).zip" Overwrite="true" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\Staging" />
+  </Target>
+
+</Project>

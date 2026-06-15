@@ -1,0 +1,50 @@
+# =====================================================================
+# .gitignore pour Combat Metrics & Accolades (WotR_CombatMVP)
+# =====================================================================
+
+# --- Dossiers de compilation et de sortie (Staging) ---
+[Bb]in/
+[Oo]bj/
+**/bin/
+**/obj/
+Staging/
+**/Staging/
+
+# --- Références du jeu original (Évite de saturer Git et de violer les droits d'auteur) ---
+references_game/
+**/references_game/
+*.dll
+*.pdb
+*.exe
+
+# --- Fichiers temporaires générés par patch_loc_v2.py (Sauvegardes de sécurité) ---
+*.bak
+*-[0-9].json.bak
+*-[0-9].cs.bak
+*.pyc
+__pycache__/
+
+# --- Fichiers de configuration IDE et utilisateur ---
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.workspace
+.DS_Store
+Thumbs.db
+
+# --- Dossiers d'obfuscation ou temporaires du mod ---
+Obfuscated/
+**/Obfuscated/
+
+# --- Règles d'inclusion explicites (Fichiers que l'on veut TOUJOURS suivre) ---
+!WotR_CombatMVP/Localization/
+!WotR_CombatMVP/Localization/**/*.json
+!Repository.json
+!notes.txt
+!LICENSE.txt
+!README.md
+*.md
+*.MD
+!README.md
