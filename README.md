@@ -1,7 +1,7 @@
 
-This is a lightweight, hassle-free utility mod for **Pathfinder: Wrath of the Righteous** that makes sure your summoned creatures and reanimated minions (from Lich Repurpose) actually stick with your party through both local and global area transitions.
+This is a mod for **Pathfinder: Wrath of the Righteous** that makes sure your summoned creatures and reanimated minions (from Lich Repurpose) actually stick with your party through both local and global area transitions.
 
-It works with **Pathfinder: WotR 2.7.0x** and **Unity Mod Manager (UMM) 0.32.4**.
+Tested with **Pathfinder: WotR 2.7.0x** and **Unity Mod Manager (UMM) 0.32.4**.
 
 ---
 
@@ -19,6 +19,7 @@ Sometimes, temporary minions are tied to the spot where you summoned them.
 - **Heavy Load Protection**: Tested with up to 50 active minions at the same time. I tried my best to makes the mod dodges Owlcat’s built-in marching order calculator for temporary minions, which keeps things running smooth and avoids crash.
 - **UI & Save Game Safe**: Doesn’t mess with your UI, and doesn’t write any weird data to your save files. You can install or remove it any time during a playthrough—no worries.
 
+Let me know if you find any issues
 ---
 
 ## Settings & Gameplay Customization
@@ -32,7 +33,7 @@ With the Unity Mod Manager (UMM) menu (`Ctrl + F10`), you can tweak these settin
 
 ### Minion Management for Liches and Summoners
 - **Natural Lifespan**: Summons still fade out after their normal spell duration. No change here.
-- **Minion Overcrowding**: If you’ve got a small army of undead (like a horde of Balors) and need to leave some behind, just turn off either transition option in the UMM menu before you move to a new area.
+- **Minion Overcrowding**: If you’ve got a small army of undead and need to leave some behind, just turn off either transition option in the UMM menu before you move to a new area.
 - **Lich Special Ability**: You can always use the Lich’s “Cancel Repurpose” ability to dismiss reanimated minions by hand.
 
 ---

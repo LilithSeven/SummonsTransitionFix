@@ -7,8 +7,6 @@ using Kingmaker;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.UnitLogic.Parts;
 using Kingmaker.View;
-using Kingmaker.UnitLogic.Commands;
-using Kingmaker.View.MapObjects;
 using UnityEngine;
 using Kingmaker.EntitySystem;
 
@@ -143,6 +141,7 @@ namespace SummonsTransitionFix
         }
     }
 
+    // PATCH 1 : Protéger les serviteurs de la destruction
     [HarmonyPatch(typeof(EntityDataBase), nameof(EntityDataBase.MarkForDestroy))]
     public static class EntityDataBase_MarkForDestroy_Patch
     {
@@ -154,7 +153,6 @@ namespace SummonsTransitionFix
             {
                 if (unit.HoldingState != null && unit.HoldingState == Game.Instance.Player?.CrossSceneState)
                 {
-                    Main.Logger?.Log($"[SummonsTransitionFix] Destruction bloquée pour le serviteur en transit : {unit.CharacterName}.");
                     return false; 
                 }
             }
@@ -162,6 +160,7 @@ namespace SummonsTransitionFix
         }
     }
 
+    // PATCH 1bis : Bouclier d'Intégrité (faction/buffs)
     [HarmonyPatch(typeof(EntityDataBase), nameof(EntityDataBase.IsInGame), MethodType.Setter)]
     public static class EntityDataBase_IsInGame_Patch
     {
@@ -173,7 +172,6 @@ namespace SummonsTransitionFix
             {
                 if (unit.HoldingState != null && unit.HoldingState == Game.Instance.Player?.CrossSceneState)
                 {
-                    Main.Logger?.Log($"[SummonsTransitionFix] Maintien de IsInGame=true pour {unit.CharacterName}. (Préserve l'intégrité de la faction et des buffs).");
                     return false; 
                 }
             }
@@ -181,49 +179,46 @@ namespace SummonsTransitionFix
         }
     }
 
-    [HarmonyPatch(typeof(AreaTransitionGroupCommand), nameof(AreaTransitionGroupCommand.ExecuteTransition))]
-    public static class AreaTransitionGroupCommand_ExecuteTransition_Patch
+    // PATCH 2 (REFONTE TOTALE) : Promotion globale fiable sur tous types de sorties (Carte Globale incluse)
+    [HarmonyPatch(typeof(Game), nameof(Game.HandleAreaBeginUnloading))]
+    public static class Game_HandleAreaBeginUnloading_Patch
     {
-        public static void Prefix(AreaTransitionPart areaTransition)
+        public static void Prefix(bool forDispose)
         {
             if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return;
+            if (forDispose) return; // Ignore si le joueur quitte vers le menu principal
 
             try
             {
                 var crossState = Game.Instance.Player?.CrossSceneState;
-                if (crossState == null) return;
+                var loadedAreaState = Game.Instance.LoadedAreaState;
+                if (crossState == null || loadedAreaState == null) return;
 
-                var state = Game.Instance.State;
-                if (state == null || state.Units == null) return;
+                var mainState = loadedAreaState.MainState;
+                if (mainState == null) return;
 
-                var units = state.Units.ToList();
-                foreach (var unit in units)
+                var minions = mainState.AllEntityData.OfType<UnitEntityData>().Where(Main.IsPlayerMinion).ToList();
+                foreach (var minion in minions)
                 {
-                    if (Main.IsPlayerMinion(unit))
-                    {
-                        var oldState = unit.HoldingState;
-                        if (oldState != null && oldState != crossState)
-                        {
-                            oldState.AllEntityData.Remove(unit);
-                            crossState.AddEntityData(unit);
-                            Main.Logger?.Log($"[SummonsTransitionFix] Promotion de {unit.CharacterName} ({unit.UniqueId}) vers CrossSceneState.");
-                        }
-                    }
+                    mainState.AllEntityData.Remove(minion);
+                    crossState.AddEntityData(minion);
+                    Main.Logger?.Log($"[SummonsTransitionFix] Promotion robuste de {minion.CharacterName} via HandleAreaBeginUnloading.");
                 }
             }
             catch (Exception ex)
             {
-                Main.Logger?.Error($"[SummonsTransitionFix] Erreur lors de la promotion globale : {ex}");
+                Main.Logger?.Error($"[SummonsTransitionFix] Erreur de promotion : {ex}");
             }
         }
     }
 
+    // PATCH 3 : Ré-introduction locale et Repositionnement absolu (Fix Alushinyrra)
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.PositionCharacters))]
     public static class AreaEnterPoint_PositionCharacters_Patch
     {
         public static void Prefix(AreaEnterPoint __instance)
         {
-            if (!Main.Enabled || Main.ModSettings == null) return;
+            if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return;
 
             try
             {
@@ -242,53 +237,54 @@ namespace SummonsTransitionFix
             }
             catch (Exception ex)
             {
-                Main.Logger?.Error($"[SummonsTransitionFix] Erreur lors de la ré-introduction locale : {ex}");
+                Main.Logger?.Error($"[SummonsTransitionFix] Erreur ré-introduction : {ex}");
             }
         }
 
         public static void Postfix(AreaEnterPoint __instance)
         {
-            if (!Main.Enabled || Main.ModSettings == null) return;
+            if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableLocalTransitions) return;
 
             try
             {
                 var mainState = Game.Instance.LoadedAreaState?.MainState;
                 if (mainState == null) return;
 
-                var allUnits = mainState.AllEntityData.OfType<UnitEntityData>().ToList();
+                var minions = mainState.AllEntityData.OfType<UnitEntityData>().Where(Main.IsPlayerMinion).ToList();
                 
-                foreach (var unit in allUnits)
+                foreach (var unit in minions)
                 {
-                    if (Main.IsPlayerMinion(unit))
+                    var master = Main.GetMinionMaster(unit);
+                    if (master != null)
                     {
-                        var master = Main.GetMinionMaster(unit);
-                        if (master != null)
-                        {
-                            // 1. Couper le "cerveau" et les déplacements en cours pour éviter le retour en arrière
-                            unit.Commands.InterruptAll(true);
-                            if (unit.View != null)
-                            {
-                                unit.View.StopMoving();
-                            }
+                        // Interrompt le pathfinding pour éviter le retour en arrière forcé
+                        unit.Commands.InterruptAll(true);
+                        if (unit.View != null) unit.View.StopMoving();
 
-                            // 2. Translocation absolue (Plaque l'unité au sol, gère le Z/Y et désactive le NavMeshAgent temporairement)
-                            unit.Translocate(master.Position, master.Orientation);
-                            
-                            // 3. Forcer le réveil
-                            unit.IsInGame = true; 
-                            
-                            Main.Logger?.Log($"[SummonsTransitionFix] Repositionnement et Translocation réussis de {unit.CharacterName} près de son maître.");
+                        // Assignation absolue des coordonnées (contourne les instabilités NavMesh d'Alushinyrra)
+                        unit.Position = master.Position;
+                        unit.Orientation = master.Orientation;
+                        
+                        if (unit.View != null)
+                        {
+                            unit.View.transform.position = master.Position;
+                            unit.View.transform.rotation = Quaternion.Euler(0f, master.Orientation, 0f);
+                            unit.View.UpdateViewActive();
                         }
+                        
+                        unit.IsInGame = true; 
+                        Main.Logger?.Log($"[SummonsTransitionFix] Repositionnement absolu de {unit.CharacterName} près de son maître.");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Main.Logger?.Error($"[SummonsTransitionFix] Erreur lors du repositionnement des serviteurs : {ex}");
+                Main.Logger?.Error($"[SummonsTransitionFix] Erreur repositionnement : {ex}");
             }
         }
     }
 	
+    // PATCH 4 : Exclure les serviteurs du calcul de formation pour éviter les crashs (IndexOutOfRangeException)
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.ShouldMoveCharacterOnAreaEnterPoint))]
     public static class AreaEnterPoint_ShouldMoveCharacterOnAreaEnterPoint_Patch
     {
