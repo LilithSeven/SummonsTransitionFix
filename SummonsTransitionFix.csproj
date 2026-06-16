@@ -8,7 +8,7 @@
     <GamePath>D:\TEST NEW PATHFINDER WOTR\Pathfinder Second Adventure</GamePath>
     <AssemblyName>SummonsTransitionFix</AssemblyName>
     <RootNamespace>SummonsTransitionFix</RootNamespace>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
