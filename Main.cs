@@ -70,13 +70,17 @@ namespace SummonsTransitionFix
             }
         }
 
-        public static bool IsPlayerMinion(UnitEntityData unit)
+            public static bool IsPlayerMinion(UnitEntityData unit)
         {
             if (unit == null) return false;
 
             
             if (unit.Descriptor?.State?.IsDead == true) return false;
 
+            
+            if (!unit.IsPlayerFaction) return false;
+
+            
             if (IsPartyMemberOrPet(unit))
                 return false;
 
