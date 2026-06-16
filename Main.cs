@@ -74,10 +74,14 @@ namespace SummonsTransitionFix
         {
             if (unit == null) return false;
 
+            
+            if (unit.Descriptor?.State?.IsDead == true) return false;
+
             if (IsPartyMemberOrPet(unit))
                 return false;
 
             var summonedPart = unit.Get<UnitPartSummonedMonster>();
+            
             if (summonedPart != null && summonedPart.Summoner != null)
             {
                 if (IsPartyMemberOrPet(summonedPart.Summoner))
@@ -141,7 +145,7 @@ namespace SummonsTransitionFix
         }
     }
 
-    // PATCH 1 : Protéger les serviteurs de la destruction
+    
     [HarmonyPatch(typeof(EntityDataBase), nameof(EntityDataBase.MarkForDestroy))]
     public static class EntityDataBase_MarkForDestroy_Patch
     {
@@ -160,7 +164,7 @@ namespace SummonsTransitionFix
         }
     }
 
-    // PATCH 1bis : Bouclier d'Intégrité (faction/buffs)
+    
     [HarmonyPatch(typeof(EntityDataBase), nameof(EntityDataBase.IsInGame), MethodType.Setter)]
     public static class EntityDataBase_IsInGame_Patch
     {
@@ -179,14 +183,14 @@ namespace SummonsTransitionFix
         }
     }
 
-    // PATCH 2 (REFONTE TOTALE) : Promotion globale fiable sur tous types de sorties (Carte Globale incluse)
+    
     [HarmonyPatch(typeof(Game), nameof(Game.HandleAreaBeginUnloading))]
     public static class Game_HandleAreaBeginUnloading_Patch
     {
         public static void Prefix(bool forDispose)
         {
             if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return;
-            if (forDispose) return; // Ignore si le joueur quitte vers le menu principal
+            if (forDispose) return; 
 
             try
             {
@@ -212,7 +216,7 @@ namespace SummonsTransitionFix
         }
     }
 
-    // PATCH 3 : Ré-introduction locale et Repositionnement absolu (Fix Alushinyrra)
+    
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.PositionCharacters))]
     public static class AreaEnterPoint_PositionCharacters_Patch
     {
@@ -257,11 +261,11 @@ namespace SummonsTransitionFix
                     var master = Main.GetMinionMaster(unit);
                     if (master != null)
                     {
-                        // Interrompt le pathfinding pour éviter le retour en arrière forcé
+                        
                         unit.Commands.InterruptAll(true);
                         if (unit.View != null) unit.View.StopMoving();
 
-                        // Assignation absolue des coordonnées (contourne les instabilités NavMesh d'Alushinyrra)
+                        
                         unit.Position = master.Position;
                         unit.Orientation = master.Orientation;
                         
@@ -284,7 +288,7 @@ namespace SummonsTransitionFix
         }
     }
 	
-    // PATCH 4 : Exclure les serviteurs du calcul de formation pour éviter les crashs (IndexOutOfRangeException)
+    
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.ShouldMoveCharacterOnAreaEnterPoint))]
     public static class AreaEnterPoint_ShouldMoveCharacterOnAreaEnterPoint_Patch
     {

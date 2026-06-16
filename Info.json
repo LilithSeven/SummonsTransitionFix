@@ -2,11 +2,11 @@
   "Id": "SummonsTransitionFix",
   "DisplayName": "Summons Transition Fix",
   "Author": "LilithSeven",
-  "Version": "1.0.2",
+  "Version": "1.0.3",
   "ManagerVersion": "0.32.4",
   "Requirements": [],
   "AssemblyName": "SummonsTransitionFix.dll",
   "EntryMethod": "SummonsTransitionFix.Main.Load",
-  "HomePage": "",
-  "Repository": ""
+  "HomePage": "https://www.nexusmods.com/pathfinderwrathoftherighteous/mods/1034",
+  "Repository": "https://raw.githubusercontent.com/LilithSeven/SummonsTransitionFix/main/Repository.json"
 }
