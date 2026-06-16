@@ -124,14 +124,23 @@ namespace SummonsTransitionFix
             return Game.Instance.Player?.MainCharacter.Value;
         }
 
-        public static bool IsPartyMemberOrPet(UnitEntityData unit)
+       public static bool IsPartyMemberOrPet(UnitEntityData unit)
         {
             if (unit == null) return false;
             if (unit.IsMainCharacter) return true;
 
-            var companion = unit.Get<UnitPartCompanion>();
-            if (companion != null && companion.State != CompanionState.ExCompanion && companion.State != CompanionState.Remote)
+            
+            var player = Game.Instance.Player;
+            if (player != null)
             {
+                if (player.AllCharacters.Contains(unit)) return true;
+                if (player.PartyAndPets.Contains(unit)) return true;
+            }
+
+            var companion = unit.Get<UnitPartCompanion>();
+            if (companion != null && companion.State != CompanionState.ExCompanion)
+            {
+                
                 return true;
             }
 
@@ -150,23 +159,7 @@ namespace SummonsTransitionFix
     }
 
     
-    [HarmonyPatch(typeof(EntityDataBase), nameof(EntityDataBase.MarkForDestroy))]
-    public static class EntityDataBase_MarkForDestroy_Patch
-    {
-        public static bool Prefix(EntityDataBase __instance)
-        {
-            if (!Main.Enabled) return true;
-
-            if (__instance is UnitEntityData unit && Main.IsPlayerMinion(unit))
-            {
-                if (unit.HoldingState != null && unit.HoldingState == Game.Instance.Player?.CrossSceneState)
-                {
-                    return false; 
-                }
-            }
-            return true;
-        }
-    }
+    
 
     
     [HarmonyPatch(typeof(EntityDataBase), nameof(EntityDataBase.IsInGame), MethodType.Setter)]
