@@ -33,7 +33,7 @@ namespace SummonsTransitionFix
             }
             catch (Exception)
             {
-                // Échec silencieux
+                
             }
         }
 
@@ -41,7 +41,7 @@ namespace SummonsTransitionFix
         {
             if (Game.Instance == null)
             {
-                // Le jeu n'est pas encore prêt, on utilise l'anglais par défaut
+                
                 s_LocalisedStrings = s_FallbackStrings;
                 return;
             }
