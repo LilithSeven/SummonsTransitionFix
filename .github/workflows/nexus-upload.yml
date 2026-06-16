@@ -1,3 +1,8 @@
+# 1. Créer l'arborescence de dossiers requis par GitHub
+New-Item -ItemType Directory -Force -Path ".github/workflows"
+
+# 2. Écrire le fichier nexus-upload.yml dans le dossier créé
+@'
 name: Upload to Nexus Mods
 
 on:
@@ -29,3 +34,4 @@ jobs:
           version: ${{ env.VERSION }}
           description: ${{ github.event.release.body }}
           file_category: main
+'@ | Out-File -FilePath ".github/workflows/nexus-upload.yml" -Encoding utf8
