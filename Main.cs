@@ -221,12 +221,13 @@ namespace SummonsTransitionFix
     }
 
     
+    
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.PositionCharacters))]
     public static class AreaEnterPoint_PositionCharacters_Patch
     {
         public static void Prefix(AreaEnterPoint __instance)
         {
-            if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return;
+            if (!Main.Enabled || Main.ModSettings == null) return;
 
             try
             {
@@ -234,21 +235,29 @@ namespace SummonsTransitionFix
                 var mainState = Game.Instance.LoadedAreaState?.MainState;
                 if (crossState != null && mainState != null)
                 {
-                    var minions = crossState.AllEntityData.OfType<UnitEntityData>().Where(Main.IsPlayerMinion).ToList();
-                    foreach (var minion in minions)
+                    
+                    var allCrossEntities = crossState.AllEntityData.OfType<UnitEntityData>().ToList();
+                    
+                    foreach (var unit in allCrossEntities)
                     {
-                        crossState.AllEntityData.Remove(minion);
-                        mainState.AddEntityData(minion);
-                        Main.Logger?.Log($"[SummonsTransitionFix] Ré-introduction de {minion.CharacterName} vers le MainState.");
+                        
+                        if (!Main.IsPartyMemberOrPet(unit))
+                        {
+                           
+                            crossState.AllEntityData.Remove(unit);
+                            mainState.AddEntityData(unit);
+                            Main.Logger?.Log($"[SummonsTransitionFix] Descente du bus inter-scènes pour : {unit.CharacterName}.");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Main.Logger?.Error($"[SummonsTransitionFix] Erreur ré-introduction : {ex}");
+                Main.Logger?.Error($"[SummonsTransitionFix] Erreur lors de la ré-introduction locale : {ex}");
             }
         }
 
+        
         public static void Postfix(AreaEnterPoint __instance)
         {
             if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableLocalTransitions) return;
