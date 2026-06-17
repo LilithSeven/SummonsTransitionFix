@@ -1,14 +1,14 @@
 using System;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 using HarmonyLib;
-using UnityModManagerNet;
 using Kingmaker;
+using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.UnitLogic.Parts;
 using Kingmaker.View;
 using UnityEngine;
-using Kingmaker.EntitySystem;
+using UnityModManagerNet;
 
 namespace SummonsTransitionFix
 {
@@ -54,156 +54,165 @@ namespace SummonsTransitionFix
 
             if (ModSettings == null) return;
 
-            ModSettings.EnableLocalTransitions = UnityEngine.GUILayout.Toggle(
-                ModSettings.EnableLocalTransitions, 
+            ModSettings.EnableLocalTransitions = GUILayout.Toggle(
+                ModSettings.EnableLocalTransitions,
                 Localization.GetString("setting.local_transitions.title")
             );
 
-            ModSettings.EnableGlobalTransitions = UnityEngine.GUILayout.Toggle(
-                ModSettings.EnableGlobalTransitions, 
+            ModSettings.EnableGlobalTransitions = GUILayout.Toggle(
+                ModSettings.EnableGlobalTransitions,
                 Localization.GetString("setting.global_transitions.title")
             );
 
-            if (UnityEngine.GUI.changed)
+            if (GUI.changed)
             {
                 ModSettings.Save(modEntry);
             }
         }
 
-            public static bool IsPlayerMinion(UnitEntityData unit)
+        public static bool IsPlayerMinion(UnitEntityData unit)
         {
             if (unit == null) return false;
-
-            
             if (unit.Descriptor?.State?.IsDead == true) return false;
-
-            
             if (!unit.IsPlayerFaction) return false;
-
-            
-            if (IsPartyMemberOrPet(unit))
-                return false;
+            if (IsPartyMemberOrPet(unit)) return false;
 
             var summonedPart = unit.Get<UnitPartSummonedMonster>();
-            
-            if (summonedPart != null && summonedPart.Summoner != null)
+            if (summonedPart != null && HasActiveSummonBuff(unit))
             {
-                if (IsPartyMemberOrPet(summonedPart.Summoner))
+                var summoner = summonedPart.Summoner;
+                if (summoner != null && IsPartyMemberOrPet(summoner))
                 {
                     return true;
                 }
             }
 
-            if (unit.Buffs != null)
-            {
-                foreach (var buff in unit.Buffs)
-                {
-                    if (buff.Blueprint != null && !string.IsNullOrEmpty(buff.Blueprint.name))
-                    {
-                        if (buff.Blueprint.name.IndexOf("Repurpose", StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
+            return GetRepurposeCaster(unit) != null;
         }
-		
+
         public static UnitEntityData? GetMinionMaster(UnitEntityData unit)
         {
             if (unit == null) return null;
 
             var summonedPart = unit.Get<UnitPartSummonedMonster>();
-            if (summonedPart != null && summonedPart.Summoner != null)
+            if (summonedPart != null)
             {
-                return summonedPart.Summoner;
+                var summoner = summonedPart.Summoner;
+                if (summoner != null && IsPartyMemberOrPet(summoner))
+                {
+                    return summoner;
+                }
             }
 
-            return Game.Instance.Player?.MainCharacter.Value;
+            return GetRepurposeCaster(unit);
         }
 
-       public static bool IsPartyMemberOrPet(UnitEntityData unit)
+        public static bool IsPartyMemberOrPet(UnitEntityData unit)
         {
             if (unit == null) return false;
             if (unit.IsMainCharacter) return true;
 
-            
-            var player = Game.Instance.Player;
+            var player = Game.Instance?.Player;
             if (player != null)
             {
-                if (player.AllCharacters.Contains(unit)) return true;
+                if (player.Party.Contains(unit)) return true;
                 if (player.PartyAndPets.Contains(unit)) return true;
             }
 
-            var companion = unit.Get<UnitPartCompanion>();
-            if (companion != null && companion.State != CompanionState.ExCompanion)
+            var petPart = unit.Get<UnitPartPet>();
+            if (petPart?.Master != null && petPart.Master != unit)
             {
-                
-                return true;
+                return IsPartyMemberOrPet(petPart.Master);
             }
 
-            var petPart = unit.Get<UnitPartPet>();
-            if (petPart != null)
+            var companion = unit.Get<UnitPartCompanion>();
+            if (companion != null && companion.State != CompanionState.None)
             {
-                var master = petPart.Master;
-                if (master != null)
-                {
-                    return IsPartyMemberOrPet(master);
-                }
+                return true;
             }
 
             return false;
         }
+
+        public static void MoveEntityWithoutDispose(SceneEntitiesState from, SceneEntitiesState to, UnitEntityData unit)
+        {
+            if (from == null || to == null || unit == null || from == to) return;
+
+            from.AllEntityData.Remove(unit);
+
+            if (!to.AllEntityData.Any(e => e.UniqueId == unit.UniqueId))
+            {
+                to.AddEntityData(unit);
+            }
+        }
+
+        private static bool HasActiveSummonBuff(UnitEntityData unit)
+        {
+            var summonedBuff = Game.Instance?.BlueprintRoot?.SystemMechanics?.SummonedUnitBuff;
+            return summonedBuff != null && unit.Buffs != null && unit.Buffs.HasFact(summonedBuff);
+        }
+
+        private static UnitEntityData? GetRepurposeCaster(UnitEntityData unit)
+        {
+            if (unit?.Buffs == null) return null;
+
+            foreach (var buff in unit.Buffs)
+            {
+                var name = buff.Blueprint?.name;
+                if (string.IsNullOrEmpty(name)) continue;
+                if (name.IndexOf("Repurpose", StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+                var caster = buff.Context?.MaybeCaster;
+                if (caster != null && IsPartyMemberOrPet(caster))
+                {
+                    return caster;
+                }
+            }
+
+            return null;
+        }
     }
 
-    
-    
-
-    
     [HarmonyPatch(typeof(EntityDataBase), nameof(EntityDataBase.IsInGame), MethodType.Setter)]
     public static class EntityDataBase_IsInGame_Patch
     {
         public static bool Prefix(EntityDataBase __instance, bool value)
         {
-            if (!Main.Enabled) return true;
+            if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return true;
 
             if (!value && __instance is UnitEntityData unit && Main.IsPlayerMinion(unit))
             {
                 if (unit.HoldingState != null && unit.HoldingState == Game.Instance.Player?.CrossSceneState)
                 {
-                    return false; 
+                    return false;
                 }
             }
+
             return true;
         }
     }
 
-    
     [HarmonyPatch(typeof(Game), nameof(Game.HandleAreaBeginUnloading))]
     public static class Game_HandleAreaBeginUnloading_Patch
     {
         public static void Prefix(bool forDispose)
         {
             if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return;
-            if (forDispose) return; 
+            if (forDispose) return;
 
             try
             {
                 var crossState = Game.Instance.Player?.CrossSceneState;
-                var loadedAreaState = Game.Instance.LoadedAreaState;
-                if (crossState == null || loadedAreaState == null) return;
-
-                var mainState = loadedAreaState.MainState;
-                if (mainState == null) return;
+                var mainState = Game.Instance.LoadedAreaState?.MainState;
+                if (crossState == null || mainState == null) return;
 
                 var minions = mainState.AllEntityData.OfType<UnitEntityData>().Where(Main.IsPlayerMinion).ToList();
+
                 foreach (var minion in minions)
                 {
-                    mainState.AllEntityData.Remove(minion);
-                    crossState.AddEntityData(minion);
-                    Main.Logger?.Log($"[SummonsTransitionFix] Promotion robuste de {minion.CharacterName} via HandleAreaBeginUnloading.");
+                    Main.MoveEntityWithoutDispose(mainState, crossState, minion);
+                    minion.ClearDestroyMark();
+                    Main.Logger?.Log($"[SummonsTransitionFix] Promotion de {minion.CharacterName} vers CrossSceneState.");
                 }
             }
             catch (Exception ex)
@@ -213,47 +222,43 @@ namespace SummonsTransitionFix
         }
     }
 
-    
-    
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.PositionCharacters))]
     public static class AreaEnterPoint_PositionCharacters_Patch
     {
         public static void Prefix(AreaEnterPoint __instance)
         {
-            if (!Main.Enabled || Main.ModSettings == null) return;
+            if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return;
 
             try
             {
                 var crossState = Game.Instance.Player?.CrossSceneState;
                 var mainState = Game.Instance.LoadedAreaState?.MainState;
-                if (crossState != null && mainState != null)
+                if (crossState == null || mainState == null) return;
+
+                var minions = crossState.AllEntityData.OfType<UnitEntityData>().Where(Main.IsPlayerMinion).ToList();
+
+                foreach (var minion in minions)
                 {
-                    
-                    var allCrossEntities = crossState.AllEntityData.OfType<UnitEntityData>().ToList();
-                    
-                    foreach (var unit in allCrossEntities)
-                    {
-                        
-                        if (!Main.IsPartyMemberOrPet(unit))
-                        {
-                           
-                            crossState.AllEntityData.Remove(unit);
-                            mainState.AddEntityData(unit);
-                            Main.Logger?.Log($"[SummonsTransitionFix] Descente du bus inter-scènes pour : {unit.CharacterName}.");
-                        }
-                    }
+                    Main.MoveEntityWithoutDispose(crossState, mainState, minion);
+                    minion.ClearDestroyMark();
+                    Main.Logger?.Log($"[SummonsTransitionFix] Réintroduction de {minion.CharacterName} dans MainState.");
+                }
+
+                if (minions.Count > 0)
+                {
+                    Game.Instance.Player?.InvalidateCharacterLists();
                 }
             }
             catch (Exception ex)
             {
-                Main.Logger?.Error($"[SummonsTransitionFix] Erreur lors de la ré-introduction locale : {ex}");
+                Main.Logger?.Error($"[SummonsTransitionFix] Erreur lors de la réintroduction : {ex}");
             }
         }
 
-        
         public static void Postfix(AreaEnterPoint __instance)
         {
-            if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableLocalTransitions) return;
+            if (!Main.Enabled || Main.ModSettings == null) return;
+            if (!Main.ModSettings.EnableLocalTransitions && !Main.ModSettings.EnableGlobalTransitions) return;
 
             try
             {
@@ -261,30 +266,29 @@ namespace SummonsTransitionFix
                 if (mainState == null) return;
 
                 var minions = mainState.AllEntityData.OfType<UnitEntityData>().Where(Main.IsPlayerMinion).ToList();
-                
+
                 foreach (var unit in minions)
                 {
                     var master = Main.GetMinionMaster(unit);
-                    if (master != null)
-                    {
-                        
-                        unit.Commands.InterruptAll(true);
-                        if (unit.View != null) unit.View.StopMoving();
+                    if (master == null) continue;
 
-                        
-                        unit.Position = master.Position;
-                        unit.Orientation = master.Orientation;
-                        
-                        if (unit.View != null)
-                        {
-                            unit.View.transform.position = master.Position;
-                            unit.View.transform.rotation = Quaternion.Euler(0f, master.Orientation, 0f);
-                            unit.View.UpdateViewActive();
-                        }
-                        
-                        unit.IsInGame = true; 
-                        Main.Logger?.Log($"[SummonsTransitionFix] Repositionnement absolu de {unit.CharacterName} près de son maître.");
+                    unit.ClearDestroyMark();
+                    unit.Commands.InterruptAll(true);
+
+                    if (unit.View != null)
+                    {
+                        unit.View.StopMoving();
                     }
+
+                    unit.Translocate(master.Position, master.Orientation);
+                    unit.IsInGame = true;
+
+                    if (unit.View != null)
+                    {
+                        unit.View.UpdateViewActive();
+                    }
+
+                    Main.Logger?.Log($"[SummonsTransitionFix] Repositionnement de {unit.CharacterName} près de son maître.");
                 }
             }
             catch (Exception ex)
@@ -293,20 +297,21 @@ namespace SummonsTransitionFix
             }
         }
     }
-	
-    
+
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.ShouldMoveCharacterOnAreaEnterPoint))]
     public static class AreaEnterPoint_ShouldMoveCharacterOnAreaEnterPoint_Patch
     {
         public static bool Prefix(UnitEntityData character, ref bool __result)
         {
-            if (!Main.Enabled) return true;
+            if (!Main.Enabled || Main.ModSettings == null) return true;
+            if (!Main.ModSettings.EnableLocalTransitions && !Main.ModSettings.EnableGlobalTransitions) return true;
 
             if (Main.IsPlayerMinion(character))
             {
                 __result = false;
-                return false; 
+                return false;
             }
+
             return true;
         }
     }
