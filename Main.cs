@@ -152,20 +152,50 @@ namespace SummonsTransitionFix
             return summonedBuff != null && unit.Buffs != null && unit.Buffs.HasFact(summonedBuff);
         }
 
+        private static readonly string[] ServitudeBuffKeywords =
+        {
+            "Repurpose",
+            "FlayForPurpose",
+            "DoomOfServitude",
+        };
+
         private static UnitEntityData? GetRepurposeCaster(UnitEntityData unit)
         {
             if (unit?.Buffs == null) return null;
+
+            var hasServitudeBuff = false;
 
             foreach (var buff in unit.Buffs)
             {
                 var name = buff.Blueprint?.name;
                 if (string.IsNullOrEmpty(name)) continue;
-                if (name.IndexOf("Repurpose", StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+                var isServitudeBuff = false;
+                foreach (var keyword in ServitudeBuffKeywords)
+                {
+                    if (name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        isServitudeBuff = true;
+                        break;
+                    }
+                }
+                if (!isServitudeBuff) continue;
+
+                hasServitudeBuff = true;
 
                 var caster = buff.Context?.MaybeCaster;
                 if (caster != null && IsPartyMemberOrPet(caster))
                 {
                     return caster;
+                }
+            }
+
+            if (hasServitudeBuff)
+            {
+                var mainCharacter = Game.Instance?.Player?.MainCharacter.Value;
+                if (mainCharacter != null && IsPartyMemberOrPet(mainCharacter))
+                {
+                    return mainCharacter;
                 }
             }
 
