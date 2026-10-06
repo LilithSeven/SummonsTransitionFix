@@ -12,6 +12,10 @@ namespace SummonsTransitionFix
         public static bool Enabled { get; private set; }
         public static Settings? ModSettings { get; private set; }
 
+        public static bool HandlesGlobalTransitions => TransitionRules.HandlesGlobalTransitions(Enabled, ModSettings?.EnableGlobalTransitions);
+
+        public static bool HandlesAnyTransition => TransitionRules.HandlesAnyTransition(Enabled, ModSettings?.EnableLocalTransitions, ModSettings?.EnableGlobalTransitions);
+
         public static bool Load(UnityModManager.ModEntry modEntry)
         {
             Logger = modEntry.Logger;

@@ -13,7 +13,7 @@ namespace SummonsTransitionFix
     {
         public static bool Prefix(EntityDataBase __instance, bool value)
         {
-            if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return true;
+            if (!Main.HandlesGlobalTransitions) return true;
 
             if (!value && __instance is UnitEntityData unit && Minions.IsPlayerMinion(unit))
             {
@@ -32,22 +32,26 @@ namespace SummonsTransitionFix
     {
         public static void Prefix(bool forDispose)
         {
-            if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return;
+            if (!Main.HandlesGlobalTransitions) return;
             if (forDispose) return;
 
             try
             {
                 var crossState = Game.Instance.Player?.CrossSceneState;
-                var mainState = Game.Instance.LoadedAreaState?.MainState;
-                if (crossState == null || mainState == null) return;
+                var area = Game.Instance.LoadedAreaState;
+                var mainState = area?.MainState;
+                if (crossState == null || area == null || mainState == null) return;
 
-                var minions = mainState.AllEntityData.OfType<UnitEntityData>().Where(Minions.IsPlayerMinion).ToList();
-
-                foreach (var minion in minions)
+                foreach (var state in TransitionRules.SelectAreaStates(mainState, area.GetAdditionalSceneStates()))
                 {
-                    Minions.MoveEntityWithoutDispose(mainState, crossState, minion);
-                    minion.ClearDestroyMark();
-                    Main.Logger?.Log($"[SummonsTransitionFix] Promotion de {minion.CharacterName} vers CrossSceneState.");
+                    var minions = state.AllEntityData.OfType<UnitEntityData>().Where(Minions.IsPlayerMinion).ToList();
+
+                    foreach (var minion in minions)
+                    {
+                        Minions.MoveEntityWithoutDispose(state, crossState, minion);
+                        minion.ClearDestroyMark();
+                        Main.Logger?.Log($"[SummonsTransitionFix] Promotion de {minion.CharacterName} vers CrossSceneState.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -62,7 +66,7 @@ namespace SummonsTransitionFix
     {
         public static void Prefix(AreaEnterPoint __instance)
         {
-            if (!Main.Enabled || Main.ModSettings == null || !Main.ModSettings.EnableGlobalTransitions) return;
+            if (!Main.HandlesGlobalTransitions) return;
 
             try
             {
@@ -92,15 +96,18 @@ namespace SummonsTransitionFix
 
         public static void Postfix(AreaEnterPoint __instance)
         {
-            if (!Main.Enabled || Main.ModSettings == null) return;
-            if (!Main.ModSettings.EnableLocalTransitions && !Main.ModSettings.EnableGlobalTransitions) return;
+            if (!Main.HandlesAnyTransition) return;
 
             try
             {
-                var mainState = Game.Instance.LoadedAreaState?.MainState;
-                if (mainState == null) return;
+                var area = Game.Instance.LoadedAreaState;
+                var mainState = area?.MainState;
+                if (area == null || mainState == null) return;
 
-                var minions = mainState.AllEntityData.OfType<UnitEntityData>().Where(Minions.IsPlayerMinion).ToList();
+                var minions = TransitionRules.SelectAreaStates(mainState, area.GetAdditionalSceneStates())
+                    .SelectMany(state => state.AllEntityData.OfType<UnitEntityData>())
+                    .Where(Minions.IsPlayerMinion)
+                    .ToList();
 
                 foreach (var unit in minions)
                 {
@@ -138,8 +145,7 @@ namespace SummonsTransitionFix
     {
         public static bool Prefix(UnitEntityData character, ref bool __result)
         {
-            if (!Main.Enabled || Main.ModSettings == null) return true;
-            if (!Main.ModSettings.EnableLocalTransitions && !Main.ModSettings.EnableGlobalTransitions) return true;
+            if (!Main.HandlesAnyTransition) return true;
 
             if (Minions.IsPlayerMinion(character))
             {

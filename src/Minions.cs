@@ -1,76 +1,30 @@
-using System;
+using System.Collections.Generic;
 using System.Linq;
 using Kingmaker;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.UnitLogic.Buffs;
 using Kingmaker.UnitLogic.Parts;
 
 namespace SummonsTransitionFix
 {
     public static class Minions
     {
+        private static readonly MinionRules<UnitEntityData, Buff> Rules = new MinionRules<UnitEntityData, Buff>(new GameFacts());
+
         public static bool IsPlayerMinion(UnitEntityData unit)
         {
-            if (unit == null) return false;
-            if (unit.Descriptor?.State?.IsDead == true) return false;
-            if (!unit.IsPlayerFaction) return false;
-            if (IsPartyMemberOrPet(unit)) return false;
-
-            var summonedPart = unit.Get<UnitPartSummonedMonster>();
-            if (summonedPart != null && HasActiveSummonBuff(unit))
-            {
-                var summoner = summonedPart.Summoner;
-                if (summoner != null && IsPartyMemberOrPet(summoner))
-                {
-                    return true;
-                }
-            }
-
-            return GetRepurposeCaster(unit) != null;
+            return Rules.IsPlayerMinion(unit);
         }
 
         public static UnitEntityData? GetMinionMaster(UnitEntityData unit)
         {
-            if (unit == null) return null;
-
-            var summonedPart = unit.Get<UnitPartSummonedMonster>();
-            if (summonedPart != null)
-            {
-                var summoner = summonedPart.Summoner;
-                if (summoner != null && IsPartyMemberOrPet(summoner))
-                {
-                    return summoner;
-                }
-            }
-
-            return GetRepurposeCaster(unit);
+            return Rules.GetMinionMaster(unit);
         }
 
         public static bool IsPartyMemberOrPet(UnitEntityData unit)
         {
-            if (unit == null) return false;
-            if (unit.IsMainCharacter) return true;
-
-            var player = Game.Instance?.Player;
-            if (player != null)
-            {
-                if (player.Party.Contains(unit)) return true;
-                if (player.PartyAndPets.Contains(unit)) return true;
-            }
-
-            var petPart = unit.Get<UnitPartPet>();
-            if (petPart?.Master != null && petPart.Master != unit)
-            {
-                return IsPartyMemberOrPet(petPart.Master);
-            }
-
-            var companion = unit.Get<UnitPartCompanion>();
-            if (companion != null && companion.State != CompanionState.None)
-            {
-                return true;
-            }
-
-            return false;
+            return Rules.IsPartyMemberOrPet(unit);
         }
 
         public static void MoveEntityWithoutDispose(SceneEntitiesState from, SceneEntitiesState to, UnitEntityData unit)
@@ -85,60 +39,100 @@ namespace SummonsTransitionFix
             }
         }
 
-        private static bool HasActiveSummonBuff(UnitEntityData unit)
+        private sealed class GameFacts : IMinionFacts<UnitEntityData, Buff>
         {
-            var summonedBuff = Game.Instance?.BlueprintRoot?.SystemMechanics?.SummonedUnitBuff;
-            return summonedBuff != null && unit.Buffs != null && unit.Buffs.HasFact(summonedBuff);
-        }
-
-        private static readonly string[] ServitudeBuffKeywords =
-        {
-            "Repurpose",
-            "FlayForPurpose",
-            "DoomOfServitude",
-        };
-
-        private static UnitEntityData? GetRepurposeCaster(UnitEntityData unit)
-        {
-            if (unit?.Buffs == null) return null;
-
-            var hasServitudeBuff = false;
-
-            foreach (var buff in unit.Buffs)
+            public bool Exists(UnitEntityData? unit)
             {
-                var name = buff.Blueprint?.name;
-                if (string.IsNullOrEmpty(name)) continue;
-
-                var isServitudeBuff = false;
-                foreach (var keyword in ServitudeBuffKeywords)
-                {
-                    if (name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        isServitudeBuff = true;
-                        break;
-                    }
-                }
-                if (!isServitudeBuff) continue;
-
-                hasServitudeBuff = true;
-
-                var caster = buff.Context?.MaybeCaster;
-                if (caster != null && IsPartyMemberOrPet(caster))
-                {
-                    return caster;
-                }
+                return unit != null;
             }
 
-            if (hasServitudeBuff)
+            public bool AreSame(UnitEntityData first, UnitEntityData second)
             {
-                var mainCharacter = Game.Instance?.Player?.MainCharacter.Value;
-                if (mainCharacter != null && IsPartyMemberOrPet(mainCharacter))
-                {
-                    return mainCharacter;
-                }
+                return first == second;
             }
 
-            return null;
+            public bool IsDead(UnitEntityData unit)
+            {
+                return unit.Descriptor?.State?.IsDead == true;
+            }
+
+            public bool IsPlayerFaction(UnitEntityData unit)
+            {
+                return unit.IsPlayerFaction;
+            }
+
+            public bool IsMainCharacter(UnitEntityData unit)
+            {
+                return unit.IsMainCharacter;
+            }
+
+            public bool IsInParty(UnitEntityData unit)
+            {
+                var player = Game.Instance?.Player;
+                return player != null && player.Party.Contains(unit);
+            }
+
+            public bool IsInPartyAndPets(UnitEntityData unit)
+            {
+                var player = Game.Instance?.Player;
+                return player != null && player.PartyAndPets.Contains(unit);
+            }
+
+            public UnitEntityData? GetPetMaster(UnitEntityData unit)
+            {
+                return unit.Get<UnitPartPet>()?.Master;
+            }
+
+            public string? GetCompanionState(UnitEntityData unit)
+            {
+                var companion = unit.Get<UnitPartCompanion>();
+                return companion != null ? companion.State.ToString() : null;
+            }
+
+            public bool HasSummonedPart(UnitEntityData unit)
+            {
+                return unit.Get<UnitPartSummonedMonster>() != null;
+            }
+
+            public UnitEntityData? GetSummoner(UnitEntityData unit)
+            {
+                return unit.Get<UnitPartSummonedMonster>()?.Summoner;
+            }
+
+            public bool HasActiveSummonBuff(UnitEntityData unit)
+            {
+                var summonedBuff = Game.Instance?.BlueprintRoot?.SystemMechanics?.SummonedUnitBuff;
+                return summonedBuff != null && unit.Buffs != null && unit.Buffs.HasFact(summonedBuff);
+            }
+
+            public IEnumerable<Buff>? GetBuffs(UnitEntityData unit)
+            {
+                var buffs = unit.Buffs;
+                return buffs != null ? Enumerate(buffs) : null;
+            }
+
+            public string? GetBuffName(Buff buff)
+            {
+                return buff.Blueprint?.name;
+            }
+
+            public UnitEntityData? GetBuffCaster(Buff buff)
+            {
+                return buff.Context?.MaybeCaster;
+            }
+
+            public UnitEntityData? GetMainCharacter()
+            {
+                return Game.Instance?.Player?.MainCharacter.Value;
+            }
+
+            private static IEnumerable<Buff> Enumerate(BuffCollection buffs)
+            {
+                foreach (var buff in buffs)
+                {
+                    yield return buff;
+                }
+            }
         }
     }
 }

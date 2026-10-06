@@ -21,6 +21,8 @@
 /src/*
 !/src/Localization.cs
 !/src/Main.cs
+!/src/MinionRules.cs
 !/src/Minions.cs
 !/src/Patches.cs
 !/src/Settings.cs
+!/src/TransitionRules.cs
