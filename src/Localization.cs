@@ -33,7 +33,6 @@ namespace SummonsTransitionFix
             }
             catch (Exception)
             {
-                
             }
         }
 
@@ -41,7 +40,6 @@ namespace SummonsTransitionFix
         {
             if (Game.Instance == null)
             {
-                
                 s_LocalisedStrings = s_FallbackStrings;
                 return;
             }

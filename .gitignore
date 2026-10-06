@@ -2,12 +2,9 @@
 !/.gitignore
 !/Info.json
 !/LICENSE
-!/Localization.cs
-!/Main.cs
 !/README.md
 !/Repository.json
 !/SummonsTransitionFix.csproj
-!/settings.cs
 
 !/.github/
 /.github/*
@@ -19,3 +16,11 @@
 /Localization/*
 !/Localization/enGB.json
 !/Localization/frFR.json
+
+!/src/
+/src/*
+!/src/Localization.cs
+!/src/Main.cs
+!/src/Minions.cs
+!/src/Patches.cs
+!/src/Settings.cs
