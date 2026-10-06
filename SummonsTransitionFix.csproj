@@ -3,67 +3,70 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
-    <GamePath>D:\TEST NEW PATHFINDER WOTR\Pathfinder Second Adventure</GamePath>
     <AssemblyName>SummonsTransitionFix</AssemblyName>
     <RootNamespace>SummonsTransitionFix</RootNamespace>
     <Version>1.0.7</Version>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>bin\$(Configuration)\</OutputPath>
+    <Deterministic>true</Deterministic>
+    <PathMap>$(MSBuildProjectDirectory)=.</PathMap>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <ManagedPath>$(GamePath)\Wrath_Data\Managed</ManagedPath>
+    <StagingPath>$(MSBuildProjectDirectory)\bin\Staging</StagingPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>$(GamePath)\Wrath_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>$(GamePath)\Wrath_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(ManagedPath)\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(GamePath)\Wrath_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(ManagedPath)\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>$(GamePath)\Wrath_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(ManagedPath)\UnityEngine.IMGUIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityModManager">
-      <HintPath>$(GamePath)\Wrath_Data\Managed\UnityModManager\UnityModManager.dll</HintPath>
+      <HintPath>$(ManagedPath)\UnityModManager\UnityModManager.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="0Harmony">
-      <HintPath>$(GamePath)\Wrath_Data\Managed\UnityModManager\0Harmony.dll</HintPath>
+      <HintPath>$(ManagedPath)\UnityModManager\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="references_game\**" />
-    <EmbeddedResource Remove="references_game\**" />
-    <None Remove="references_game\**" />
+    <None Update="Info.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Localization\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="Info.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Localization\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+  <Target Name="CheckGamePath" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(GamePath)' == ''" Text="GamePath is not set. Set the GamePath environment variable to the game folder, or pass -p:GamePath=&quot;...&quot; to dotnet build." />
+    <Error Condition="!Exists('$(ManagedPath)\Assembly-CSharp.dll')" Text="Assembly-CSharp.dll was not found in '$(ManagedPath)'. GamePath must point to the folder that contains Wrath_Data." />
+  </Target>
 
   <Target Name="CreateZip" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
-    <MakeDir Directories="$(MSBuildProjectDirectory)\bin\Staging\SummonsTransitionFix" />
-    
-    <Copy SourceFiles="$(TargetDir)SummonsTransitionFix.dll" DestinationFolder="$(MSBuildProjectDirectory)\bin\Staging\SummonsTransitionFix" />
-    <Copy SourceFiles="$(MSBuildProjectDirectory)\Info.json" DestinationFolder="$(MSBuildProjectDirectory)\bin\Staging\SummonsTransitionFix" />
-    
-     <ItemGroup><LocFiles Include="$(MSBuildProjectDirectory)\Localization\**\*.*" /></ItemGroup>
-     <Copy SourceFiles="@(LocFiles)" DestinationFolder="$(MSBuildProjectDirectory)\bin\Staging\SummonsTransitionFix\Localization\%(RecursiveDir)" />
-
-    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)\bin\Staging" DestinationFile="$(MSBuildProjectDirectory)\bin\SummonsTransitionFix-$(Version).zip" Overwrite="true" />
-    <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\Staging" />
+    <ItemGroup>
+      <LocalizationFiles Include="$(MSBuildProjectDirectory)\Localization\**\*.*" />
+    </ItemGroup>
+    <RemoveDir Directories="$(StagingPath)" />
+    <Copy SourceFiles="$(TargetDir)SummonsTransitionFix.dll;$(MSBuildProjectDirectory)\Info.json" DestinationFolder="$(StagingPath)\SummonsTransitionFix" />
+    <Copy SourceFiles="@(LocalizationFiles)" DestinationFolder="$(StagingPath)\SummonsTransitionFix\Localization\%(RecursiveDir)" />
+    <ZipDirectory SourceDirectory="$(StagingPath)" DestinationFile="$(MSBuildProjectDirectory)\bin\SummonsTransitionFix-$(Version).zip" Overwrite="true" />
+    <RemoveDir Directories="$(StagingPath)" />
   </Target>
 
 </Project>
