@@ -1,48 +1,57 @@
+# Summons Transition Fix
 
-This is a mod for **Pathfinder: Wrath of the Righteous** that makes sure your summoned creatures and reanimated minions (from Lich Repurpose) actually stick with your party through both local and global area transitions.
+A mod for **Pathfinder: Wrath of the Righteous** that keeps your summoned creatures and reanimated minions (Lich Repurpose and similar abilities) with your party through doors, loading screens and world map travel.
 
 Tested with **Pathfinder: WotR 2.7.0x** and **Unity Mod Manager (UMM) 0.32.4**.
 
----
+## The problem
 
+In the base game, temporary minions are tied to the spot where you summoned them.
 
-Sometimes, temporary minions are tied to the spot where you summoned them.
-- **Local Transitions (doors, caves)**: Sometimes, only your main party members get teleported. Your summons get stuck on the other side of whatever barrier you just went through.
-- **Global Transitions (loading screens, world map)**: The game wipes anything that’s not a companion from active cross-scene data.
+- **Local transitions (doors, caves)**: only your main party members get teleported. Your summons get stuck on the other side of whatever you just went through.
+- **Global transitions (loading screens, world map)**: the game removes anything that is not a companion when it unloads the area.
 
+## What the mod does
 
-**Summons Transition Fix** bumps your active minions into the persistent cross-scene buffer during transitions, then slips them right back in when the new area loads, so they pop up at their master’s side.
+When you leave an area, the mod takes your active minions along with the party. When the new area loads, it puts them right back at their master's side.
 
-### Key Features
-- **Universal Minion Detection**: Picks up normal summons, Lich-reanimated undead, and other converted allies automatically.
-- **State Integrity Shield**: Stops the engine from stripping away buffs during transition tunnels, so reanimated undead don’t lose their templates or flip back to hostile factions.
-- **Heavy Load Protection**: Tested with up to 50 active minions at the same time. I tried my best to makes the mod dodges Owlcat’s built-in marching order calculator for temporary minions, which keeps things running smooth and avoids crash.
-- **UI & Save Game Safe**: Doesn’t mess with your UI, and doesn’t write any weird data to your save files. You can install or remove it any time during a playthrough—no worries.
+- **Summons and reanimated minions**: regular summons, undead raised with Repurpose or Flay for Purpose, and creatures bound by Doom of Servitude.
+- **Only your minions**: companions (active or in reserve), pets, mounts and NPCs are left alone. Dead minions stay behind.
+- **No marching order**: minions appear next to their master instead of taking a slot in the party formation.
+- **Light on your saves**: the mod adds no data of its own to your save files.
 
-Let me know if you find any issues
----
+If you run into a problem, let me know on the Nexus page. The place and the creature involved help a lot.
 
-## Settings & Gameplay Customization
+## Settings
 
-With the Unity Mod Manager (UMM) menu (`Ctrl + F10`), you can tweak these settings:
+Open the Unity Mod Manager menu (`Ctrl + F10`):
 
-1. **Enable Local Transitions** (Default: *Enabled*)
-   - Makes sure summons and minions jump through doors, athletic or mobility checks, or caves right alongside their masters.
-2. **Enable Global Transitions** (Default: *Enabled*)
-   - Minions follow your party across big zone loads and world map travel.
+1. **Enable Local Transitions** (default: enabled)
+   Summons and minions go through doors, athletics or mobility checks, and caves along with their masters.
+2. **Enable Global Transitions** (default: enabled)
+   Minions follow your party across loading screens and world map travel.
 
-### Minion Management for Liches and Summoners
-- **Natural Lifespan**: Summons still fade out after their normal spell duration. No change here.
-- **Minion Overcrowding**: If you’ve got a small army of undead and need to leave some behind, just turn off either transition option in the UMM menu before you move to a new area.
-- **Lich Special Ability**: You can always use the Lich’s “Cancel Repurpose” ability to dismiss reanimated minions by hand.
+### Managing your minions
 
----
+- **Natural lifespan**: summons still fade out after their normal spell duration. No change here.
+- **Too many minions**: if you have a small army of undead and want to leave some behind, turn off either option before you move to a new area.
+- **Lich ability**: you can always use "Cancel Repurpose" to dismiss reanimated minions by hand.
 
 ## Installation
+
 1. Install **Unity Mod Manager** (UMM).
 2. Download the latest release of **Summons Transition Fix**.
-3. Unzip it into your `<GamePath>/Mods/` folder, or just install it through the UMM GUI.
+3. Unzip it into the `Mods` folder of your game, or install it through the UMM window.
 
-## Source Code & Credits
-Developed by **LilithSeven**. You’ll find the source code and development logs on [GitHub](https://github.com/LilithSeven/SummonsTransitionFix).
+## Building from source
+
+You need the .NET SDK and the game installed. Tell the build where the game is, then build:
+
+    dotnet build -c Release -p:GamePath="path to your game folder"
+
+The zip is written to the `bin` folder.
+
+## Credits
+
+Developed by **LilithSeven**. Source code on [GitHub](https://github.com/LilithSeven/SummonsTransitionFix).
 Licensed under the **MIT License**.
