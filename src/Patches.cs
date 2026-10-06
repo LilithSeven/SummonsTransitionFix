@@ -50,13 +50,13 @@ namespace SummonsTransitionFix
                     {
                         Minions.MoveEntityWithoutDispose(state, crossState, minion);
                         minion.ClearDestroyMark();
-                        Main.Logger?.Log($"[SummonsTransitionFix] Promotion de {minion.CharacterName} vers CrossSceneState.");
+                        Main.Logger?.Log($"[SummonsTransitionFix] Moved {minion.CharacterName} to CrossSceneState.");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Main.Logger?.Error($"[SummonsTransitionFix] Erreur de promotion : {ex}");
+                Main.Logger?.Error($"[SummonsTransitionFix] Failed to move minions to CrossSceneState: {ex}");
             }
         }
     }
@@ -80,7 +80,7 @@ namespace SummonsTransitionFix
                 {
                     Minions.MoveEntityWithoutDispose(crossState, mainState, minion);
                     minion.ClearDestroyMark();
-                    Main.Logger?.Log($"[SummonsTransitionFix] Réintroduction de {minion.CharacterName} dans MainState.");
+                    Main.Logger?.Log($"[SummonsTransitionFix] Moved {minion.CharacterName} back to MainState.");
                 }
 
                 if (minions.Count > 0)
@@ -90,7 +90,7 @@ namespace SummonsTransitionFix
             }
             catch (Exception ex)
             {
-                Main.Logger?.Error($"[SummonsTransitionFix] Erreur lors de la réintroduction : {ex}");
+                Main.Logger?.Error($"[SummonsTransitionFix] Failed to move minions back to MainState: {ex}");
             }
         }
 
@@ -130,12 +130,12 @@ namespace SummonsTransitionFix
                         unit.View.UpdateViewActive();
                     }
 
-                    Main.Logger?.Log($"[SummonsTransitionFix] Repositionnement de {unit.CharacterName} près de son maître.");
+                    Main.Logger?.Log($"[SummonsTransitionFix] Placed {unit.CharacterName} next to its master.");
                 }
             }
             catch (Exception ex)
             {
-                Main.Logger?.Error($"[SummonsTransitionFix] Erreur repositionnement : {ex}");
+                Main.Logger?.Error($"[SummonsTransitionFix] Failed to place minions next to their master: {ex}");
             }
         }
     }

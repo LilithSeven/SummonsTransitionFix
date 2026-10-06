@@ -34,7 +34,7 @@ namespace SummonsTransitionFix
             }
             catch (Exception ex)
             {
-                Logger?.Error($"[SummonsTransitionFix] Erreur critique lors de l'application des patchs Harmony : {ex}");
+                Logger?.Error($"[SummonsTransitionFix] Failed to apply Harmony patches: {ex}");
             }
 
             return true;
