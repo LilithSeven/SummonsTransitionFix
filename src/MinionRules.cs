@@ -45,6 +45,12 @@ namespace SummonsTransitionFix
             "DoomOfServitude",
         };
 
+        public static readonly string[] BuffNamesThatNeverMarkAMinion =
+        {
+            "NPC_Immortality_RepurposeBuff",
+            "RepurposeCasterBuff",
+        };
+
         private readonly IMinionFacts<TUnit, TBuff> facts;
 
         public MinionRules(IMinionFacts<TUnit, TBuff> facts)
@@ -141,6 +147,11 @@ namespace SummonsTransitionFix
         public static bool IsServitudeBuffName(string? name)
         {
             if (name == null || name.Length == 0) return false;
+
+            foreach (var excluded in BuffNamesThatNeverMarkAMinion)
+            {
+                if (string.Equals(name, excluded, StringComparison.OrdinalIgnoreCase)) return false;
+            }
 
             foreach (var keyword in ServitudeBuffKeywords)
             {
