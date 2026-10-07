@@ -144,6 +144,19 @@ namespace SummonsTransitionFix
             return false;
         }
 
+        public bool LeadsOnlyPlayerMinions(TUnit? leader, IEnumerable<TUnit?>? followers)
+        {
+            if (followers == null || !IsPartyMemberOrPet(leader)) return false;
+
+            foreach (var follower in followers)
+            {
+                if (!facts.Exists(follower) || facts.IsDead(follower!)) continue;
+                if (!IsPlayerMinion(follower)) return false;
+            }
+
+            return true;
+        }
+
         public static bool IsServitudeBuffName(string? name)
         {
             if (name == null || name.Length == 0) return false;

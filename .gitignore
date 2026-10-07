@@ -21,6 +21,9 @@
 /src/*
 !/src/CreatureListWindow.cs
 !/src/Diagnostics.cs
+!/src/FollowerPlacement.cs
+!/src/FormationPatches.cs
+!/src/FormationSettingsPanel.cs
 !/src/Localization.cs
 !/src/Main.cs
 !/src/MinionRules.cs
@@ -30,4 +33,6 @@
 !/src/ShortcutRules.cs
 !/src/StayList.cs
 !/src/StayRules.cs
+!/src/SummonPlacement.cs
 !/src/TransitionRules.cs
+!/src/UnitCombatProfile.cs

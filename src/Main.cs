@@ -19,6 +19,8 @@ namespace SummonsTransitionFix
 
         public static bool WritesDiagnosticReport => TransitionRules.WritesDiagnosticReport(Enabled, ModSettings?.EnableDiagnosticLog);
 
+        public static bool PlacesMinionsInFormation => TransitionRules.IsOptionOn(Enabled, ModSettings?.EnableMinionFormation);
+
         public static bool Load(UnityModManager.ModEntry modEntry)
         {
             Logger = modEntry.Logger;
@@ -31,6 +33,7 @@ namespace SummonsTransitionFix
             modEntry.OnUpdate = CreatureListWindow.OnUpdate;
             modEntry.OnFixedGUI = CreatureListWindow.OnFixedGUI;
             modEntry.OnHideGUI = OnHideGUI;
+            modEntry.OnSaveGUI = OnSaveGUI;
 
             Localization.Init(modEntry.Path);
 
@@ -64,6 +67,12 @@ namespace SummonsTransitionFix
         private static void OnHideGUI(UnityModManager.ModEntry modEntry)
         {
             CreatureListWindow.StopWaitingForShortcut();
+            FormationSettingsPanel.SaveUnsavedTuning();
+        }
+
+        private static void OnSaveGUI(UnityModManager.ModEntry modEntry)
+        {
+            FormationSettingsPanel.SaveUnsavedTuning();
         }
 
         public static void SaveSettings()
@@ -107,6 +116,8 @@ namespace SummonsTransitionFix
                 ModSettings.Save(modEntry);
             }
 
+            GUILayout.Space(10f);
+            FormationSettingsPanel.Draw(ModSettings);
             GUILayout.Space(10f);
             CreatureListWindow.DrawShortcutSetting(ModSettings);
             GUILayout.Space(10f);

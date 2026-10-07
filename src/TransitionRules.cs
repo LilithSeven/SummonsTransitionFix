@@ -19,6 +19,11 @@ namespace SummonsTransitionFix
             return enabled && diagnosticSetting == true;
         }
 
+        public static bool IsOptionOn(bool enabled, bool? optionSetting)
+        {
+            return enabled && optionSetting == true;
+        }
+
         public static bool CanBeToldToStay(MinionVerdict verdict)
         {
             return verdict == MinionVerdict.BoundByServitude;

@@ -26,6 +26,10 @@
       <HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="AstarPathfindingProject">
+      <HintPath>$(ManagedPath)\AstarPathfindingProject.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(ManagedPath)\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
