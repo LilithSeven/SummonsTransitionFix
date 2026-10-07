@@ -17,10 +17,26 @@ namespace SummonsTransitionFix
         public static List<TState> SelectAreaStates<TState>(TState? mainState, IEnumerable<TState>? additionalStates) where TState : class
         {
             var states = new List<TState>();
-            if (mainState != null)
+            if (mainState == null)
             {
-                states.Add(mainState);
+                return states;
             }
+
+            states.Add(mainState);
+
+            if (additionalStates == null)
+            {
+                return states;
+            }
+
+            foreach (var state in additionalStates)
+            {
+                if (state != null && !states.Contains(state))
+                {
+                    states.Add(state);
+                }
+            }
+
             return states;
         }
     }
