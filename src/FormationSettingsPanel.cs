@@ -1,4 +1,6 @@
+using System;
 using System.Globalization;
+using Kingmaker;
 using UnityEngine;
 
 namespace SummonsTransitionFix
@@ -6,6 +8,7 @@ namespace SummonsTransitionFix
     public static class FormationSettingsPanel
     {
         private const float IndentWidth = 24f;
+        private const float SectionGap = 6f;
         private const float LabelWidth = 330f;
         private const float SliderWidth = 220f;
         private const float ValueWidth = 50f;
@@ -14,10 +17,14 @@ namespace SummonsTransitionFix
         private const string FactorFormat = "0.00";
 
         private static bool s_ShowsMinionTuning;
+        private static bool s_ShowsPartyTuning;
         private static bool s_DrawsMinionOptions;
         private static bool s_DrawsMinionTuning;
         private static bool s_DrawsCatchUp;
+        private static bool s_DrawsPartyOptions;
+        private static bool s_DrawsPartyTuning;
         private static bool s_HasUnsavedTuning;
+        private static bool s_PartyFormationNeedsRefresh;
 
         public static void Draw(Settings settings)
         {
@@ -26,6 +33,8 @@ namespace SummonsTransitionFix
                 s_DrawsMinionOptions = settings.EnableMinionFormation;
                 s_DrawsMinionTuning = s_ShowsMinionTuning;
                 s_DrawsCatchUp = settings.EnableMinionSpeed;
+                s_DrawsPartyOptions = settings.EnablePartyAutoFormation;
+                s_DrawsPartyTuning = s_ShowsPartyTuning;
             }
 
             bool togglesChanged = false;
@@ -52,6 +61,33 @@ namespace SummonsTransitionFix
                 EndIndentedBlock();
             }
 
+            GUILayout.Space(SectionGap);
+
+            bool partyToggled = DrawToggle(ref settings.EnablePartyAutoFormation, Localization.GetString("setting.party_formation.title"));
+            bool partyTuningChanged = false;
+            GUILayout.Label(Localization.GetString("setting.party_formation.help"));
+
+            if (s_DrawsPartyOptions)
+            {
+                BeginIndentedBlock();
+
+                s_ShowsPartyTuning = DrawTuningButton(s_ShowsPartyTuning);
+                if (s_DrawsPartyTuning)
+                {
+                    partyTuningChanged = DrawPartyTuning(settings);
+                }
+
+                EndIndentedBlock();
+            }
+
+            if (partyToggled || partyTuningChanged)
+            {
+                RequestPartyFormationRefresh();
+            }
+
+            togglesChanged |= partyToggled;
+            tuningChanged |= partyTuningChanged;
+
             if (togglesChanged)
             {
                 s_HasUnsavedTuning = false;
@@ -69,6 +105,37 @@ namespace SummonsTransitionFix
 
             s_HasUnsavedTuning = false;
             Main.SaveSettings();
+        }
+
+        public static void RequestPartyFormationRefresh()
+        {
+            s_PartyFormationNeedsRefresh = true;
+            RefreshPartyFormationWhenPossible();
+        }
+
+        public static void RefreshPartyFormationWhenPossible()
+        {
+            if (!s_PartyFormationNeedsRefresh) return;
+
+            try
+            {
+                if (!CreatureListWindow.IsGameLoaded())
+                {
+                    s_PartyFormationNeedsRefresh = false;
+                    return;
+                }
+
+                var player = Game.Instance.Player;
+                if (player.IsInCombat) return;
+
+                s_PartyFormationNeedsRefresh = false;
+                player.FormationManager.UpdateAutoFormation();
+            }
+            catch (Exception ex)
+            {
+                s_PartyFormationNeedsRefresh = false;
+                Main.Logger?.Error($"[SummonsTransitionFix] Failed to refresh the automatic party formation: {ex}");
+            }
         }
 
         private static bool DrawMinionTuning(Settings settings)
@@ -106,6 +173,28 @@ namespace SummonsTransitionFix
                 settings.RaisedLineGap = defaults.RaisedLineGap;
                 settings.RaisedLateralSpacing = defaults.RaisedLateralSpacing;
                 settings.RaisedCorridorWidth = defaults.RaisedCorridorWidth;
+                changed = true;
+            }
+
+            return changed;
+        }
+
+        private static bool DrawPartyTuning(Settings settings)
+        {
+            bool changed = false;
+
+            changed |= DrawSlider(ref settings.PartyFrontGap, Localization.GetString("tuning.party.front_gap"), 2f, 10f, DistanceFormat);
+            changed |= DrawSlider(ref settings.PartyMidGap, Localization.GetString("tuning.party.mid_gap"), 2f, 10f, DistanceFormat);
+            changed |= DrawSlider(ref settings.PartyBackGap, Localization.GetString("tuning.party.back_gap"), 2f, 10f, DistanceFormat);
+            changed |= DrawSlider(ref settings.PartyLateralSpacing, Localization.GetString("tuning.party.lateral_spacing"), 1.5f, 5f, DistanceFormat);
+
+            if (GUILayout.Button(Localization.GetString("formation.tuning.reset"), GUILayout.Width(ButtonWidth)))
+            {
+                var defaults = new Settings();
+                settings.PartyFrontGap = defaults.PartyFrontGap;
+                settings.PartyMidGap = defaults.PartyMidGap;
+                settings.PartyBackGap = defaults.PartyBackGap;
+                settings.PartyLateralSpacing = defaults.PartyLateralSpacing;
                 changed = true;
             }
 

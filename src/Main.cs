@@ -21,6 +21,8 @@ namespace SummonsTransitionFix
 
         public static bool PlacesMinionsInFormation => TransitionRules.IsOptionOn(Enabled, ModSettings?.EnableMinionFormation);
 
+        public static bool ArrangesPartyFormation => TransitionRules.IsOptionOn(Enabled, ModSettings?.EnablePartyAutoFormation);
+
         public static bool Load(UnityModManager.ModEntry modEntry)
         {
             Logger = modEntry.Logger;
@@ -30,7 +32,7 @@ namespace SummonsTransitionFix
 
             modEntry.OnToggle = OnToggle;
             modEntry.OnGUI = OnGUI;
-            modEntry.OnUpdate = CreatureListWindow.OnUpdate;
+            modEntry.OnUpdate = OnUpdate;
             modEntry.OnFixedGUI = CreatureListWindow.OnFixedGUI;
             modEntry.OnHideGUI = OnHideGUI;
             modEntry.OnSaveGUI = OnSaveGUI;
@@ -61,7 +63,18 @@ namespace SummonsTransitionFix
                 CreatureListWindow.Close();
             }
 
+            if (ModSettings?.EnablePartyAutoFormation == true)
+            {
+                FormationSettingsPanel.RequestPartyFormationRefresh();
+            }
+
             return true;
+        }
+
+        private static void OnUpdate(UnityModManager.ModEntry modEntry, float deltaTime)
+        {
+            CreatureListWindow.OnUpdate(modEntry, deltaTime);
+            FormationSettingsPanel.RefreshPartyFormationWhenPossible();
         }
 
         private static void OnHideGUI(UnityModManager.ModEntry modEntry)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HarmonyLib;
 using Kingmaker.Controllers.Units;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.Formations;
 using Kingmaker.UnitLogic.Parts;
 using UnityEngine;
 
@@ -69,6 +70,26 @@ namespace SummonsTransitionFix
             catch (Exception ex)
             {
                 FormationFailures.Report("Finding where raised creatures gather", ex);
+                return true;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(PartyAutoFormationHelper), nameof(PartyAutoFormationHelper.Setup))]
+    public static class PartyAutoFormationHelper_Setup_Patch
+    {
+        public static bool Prefix(PartyFormationAuto formation)
+        {
+            if (!Main.ArrangesPartyFormation || formation == null) return true;
+
+            try
+            {
+                PartyAutoFormation.Setup(formation);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                FormationFailures.Report("Arranging the automatic party formation", ex);
                 return true;
             }
         }

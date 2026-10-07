@@ -215,7 +215,7 @@ namespace SummonsTransitionFix
                 Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt));
         }
 
-        private static bool IsGameLoaded()
+        public static bool IsGameLoaded()
         {
             var game = Game.Instance;
             return game?.Player != null && game.LoadedAreaState?.MainState != null && !string.IsNullOrEmpty(game.Player.GameId);

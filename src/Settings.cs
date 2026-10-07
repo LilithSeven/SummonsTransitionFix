@@ -23,6 +23,11 @@ namespace SummonsTransitionFix
         public float RaisedLineGap = 2.8f;
         public float RaisedLateralSpacing = 2.4f;
         public float RaisedCorridorWidth = 1.8f;
+        public bool EnablePartyAutoFormation = false;
+        public float PartyFrontGap = 4.5f;
+        public float PartyMidGap = 4.0f;
+        public float PartyBackGap = 3.5f;
+        public float PartyLateralSpacing = 2.6f;
 
         public KeyCode CreatureListKey = KeyCode.F9;
 
