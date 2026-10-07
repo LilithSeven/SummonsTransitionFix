@@ -32,8 +32,11 @@ namespace SummonsTransitionFix
     {
         public static void Prefix(bool forDispose)
         {
-            if (!Main.HandlesGlobalTransitions) return;
             if (forDispose) return;
+
+            Diagnostics.ReportUnits("Leaving area");
+
+            if (!Main.HandlesGlobalTransitions) return;
 
             try
             {
@@ -95,6 +98,12 @@ namespace SummonsTransitionFix
         }
 
         public static void Postfix(AreaEnterPoint __instance)
+        {
+            PlaceMinionsNextToTheirMaster();
+            Diagnostics.ReportUnits("Arrived");
+        }
+
+        private static void PlaceMinionsNextToTheirMaster()
         {
             if (!Main.HandlesAnyTransition) return;
 

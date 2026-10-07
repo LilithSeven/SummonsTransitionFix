@@ -1,4 +1,5 @@
 {
   "setting.local_transitions.title": "Corriger les transitions locales (portes, entrées de grottes...)",
-  "setting.global_transitions.title": "Corriger les transitions globales (écrans de chargement de zone)"
+  "setting.global_transitions.title": "Corriger les transitions globales (écrans de chargement de zone)",
+  "setting.diagnostic_log.title": "Écrire un rapport de diagnostic dans le journal du mod à chaque transition (pour signaler un bug)"
 }

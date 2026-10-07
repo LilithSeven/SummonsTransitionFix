@@ -17,6 +17,16 @@ namespace SummonsTransitionFix
             return Rules.IsPlayerMinion(unit);
         }
 
+        public static MinionVerdict Classify(UnitEntityData unit)
+        {
+            return Rules.Classify(unit);
+        }
+
+        public static bool IsWorthReporting(UnitEntityData unit)
+        {
+            return Rules.IsWorthReporting(unit);
+        }
+
         public static UnitEntityData? GetMinionMaster(UnitEntityData unit)
         {
             return Rules.GetMinionMaster(unit);

@@ -8,6 +8,8 @@ namespace SummonsTransitionFix
 
         public bool EnableGlobalTransitions = true;
 
+        public bool EnableDiagnosticLog = false;
+
         public override void Save(UnityModManager.ModEntry modEntry)
         {
             Save(this, modEntry);

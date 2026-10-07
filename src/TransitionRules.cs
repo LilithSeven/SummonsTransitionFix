@@ -14,6 +14,11 @@ namespace SummonsTransitionFix
             return enabled && (localSetting == true || globalSetting == true);
         }
 
+        public static bool WritesDiagnosticReport(bool enabled, bool? diagnosticSetting)
+        {
+            return enabled && diagnosticSetting == true;
+        }
+
         public static List<TState> SelectAreaStates<TState>(TState? mainState, IEnumerable<TState>? additionalStates) where TState : class
         {
             var states = new List<TState>();

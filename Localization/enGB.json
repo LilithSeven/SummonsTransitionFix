@@ -1,4 +1,5 @@
 {
   "setting.local_transitions.title": "Fix local transitions (doors, cave entrances...)",
-  "setting.global_transitions.title": "Fix global transitions (zone loading screens)"
+  "setting.global_transitions.title": "Fix global transitions (zone loading screens)",
+  "setting.diagnostic_log.title": "Write a diagnostic report to the mod log at each transition (for bug reports)"
 }

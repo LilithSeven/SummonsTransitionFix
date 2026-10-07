@@ -23,6 +23,17 @@ namespace SummonsTransitionFix
         TUnit? GetMainCharacter();
     }
 
+    public enum MinionVerdict
+    {
+        Missing,
+        Dead,
+        NotPlayerFaction,
+        PartyMemberOrPet,
+        NoLinkToParty,
+        SummonedByParty,
+        BoundByServitude,
+    }
+
     public sealed class MinionRules<TUnit, TBuff> where TUnit : class
     {
         public const string NoCompanionState = "None";
@@ -43,21 +54,50 @@ namespace SummonsTransitionFix
 
         public bool IsPlayerMinion(TUnit? unit)
         {
-            if (!facts.Exists(unit)) return false;
-            if (facts.IsDead(unit!)) return false;
-            if (!facts.IsPlayerFaction(unit!)) return false;
-            if (IsPartyMemberOrPet(unit)) return false;
+            var verdict = Classify(unit);
+            return verdict == MinionVerdict.SummonedByParty || verdict == MinionVerdict.BoundByServitude;
+        }
+
+        public MinionVerdict Classify(TUnit? unit)
+        {
+            if (!facts.Exists(unit)) return MinionVerdict.Missing;
+            if (facts.IsDead(unit!)) return MinionVerdict.Dead;
+            if (!facts.IsPlayerFaction(unit!)) return MinionVerdict.NotPlayerFaction;
+            if (IsPartyMemberOrPet(unit)) return MinionVerdict.PartyMemberOrPet;
 
             if (facts.HasSummonedPart(unit!) && facts.HasActiveSummonBuff(unit!))
             {
                 var summoner = facts.GetSummoner(unit!);
                 if (facts.Exists(summoner) && IsPartyMemberOrPet(summoner))
                 {
-                    return true;
+                    return MinionVerdict.SummonedByParty;
                 }
             }
 
-            return facts.Exists(GetServitudeMaster(unit!));
+            return facts.Exists(GetServitudeMaster(unit!)) ? MinionVerdict.BoundByServitude : MinionVerdict.NoLinkToParty;
+        }
+
+        public bool HasServitudeBuff(TUnit? unit)
+        {
+            if (!facts.Exists(unit)) return false;
+
+            var buffs = facts.GetBuffs(unit!);
+            if (buffs == null) return false;
+
+            foreach (var buff in buffs)
+            {
+                if (IsServitudeBuffName(facts.GetBuffName(buff))) return true;
+            }
+
+            return false;
+        }
+
+        public bool IsWorthReporting(TUnit? unit)
+        {
+            var verdict = Classify(unit);
+            if (verdict == MinionVerdict.Missing || verdict == MinionVerdict.PartyMemberOrPet) return false;
+            if (verdict == MinionVerdict.Dead || verdict == MinionVerdict.NotPlayerFaction) return HasServitudeBuff(unit);
+            return true;
         }
 
         public TUnit? GetMinionMaster(TUnit? unit)

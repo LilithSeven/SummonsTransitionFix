@@ -16,6 +16,8 @@ namespace SummonsTransitionFix
 
         public static bool HandlesAnyTransition => TransitionRules.HandlesAnyTransition(Enabled, ModSettings?.EnableLocalTransitions, ModSettings?.EnableGlobalTransitions);
 
+        public static bool WritesDiagnosticReport => TransitionRules.WritesDiagnosticReport(Enabled, ModSettings?.EnableDiagnosticLog);
+
         public static bool Load(UnityModManager.ModEntry modEntry)
         {
             Logger = modEntry.Logger;
@@ -60,6 +62,11 @@ namespace SummonsTransitionFix
             ModSettings.EnableGlobalTransitions = GUILayout.Toggle(
                 ModSettings.EnableGlobalTransitions,
                 Localization.GetString("setting.global_transitions.title")
+            );
+
+            ModSettings.EnableDiagnosticLog = GUILayout.Toggle(
+                ModSettings.EnableDiagnosticLog,
+                Localization.GetString("setting.diagnostic_log.title")
             );
 
             if (GUI.changed)

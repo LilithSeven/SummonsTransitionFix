@@ -19,6 +19,7 @@
 
 !/src/
 /src/*
+!/src/Diagnostics.cs
 !/src/Localization.cs
 !/src/Main.cs
 !/src/MinionRules.cs
