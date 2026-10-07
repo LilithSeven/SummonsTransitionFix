@@ -27,6 +27,19 @@ namespace SummonsTransitionFix
             return Rules.IsWorthReporting(unit);
         }
 
+        public static bool CanBeToldToStay(UnitEntityData unit)
+        {
+            return TransitionRules.CanBeToldToStay(Rules.Classify(unit));
+        }
+
+        public static bool IsTakenAlong(UnitEntityData unit)
+        {
+            var verdict = Rules.Classify(unit);
+            bool staysInArea = TransitionRules.CanBeToldToStay(verdict) && StayList.IsStaying(unit);
+
+            return TransitionRules.IsTakenAlong(verdict, staysInArea);
+        }
+
         public static UnitEntityData? GetMinionMaster(UnitEntityData unit)
         {
             return Rules.GetMinionMaster(unit);

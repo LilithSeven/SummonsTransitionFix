@@ -19,6 +19,18 @@ namespace SummonsTransitionFix
             return enabled && diagnosticSetting == true;
         }
 
+        public static bool CanBeToldToStay(MinionVerdict verdict)
+        {
+            return verdict == MinionVerdict.BoundByServitude;
+        }
+
+        public static bool IsTakenAlong(MinionVerdict verdict, bool staysInArea)
+        {
+            if (verdict == MinionVerdict.SummonedByParty) return true;
+
+            return verdict == MinionVerdict.BoundByServitude && !staysInArea;
+        }
+
         public static List<TState> SelectAreaStates<TState>(TState? mainState, IEnumerable<TState>? additionalStates) where TState : class
         {
             var states = new List<TState>();

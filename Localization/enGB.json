@@ -1,5 +1,14 @@
 {
   "setting.local_transitions.title": "Fix local transitions (doors, cave entrances...)",
   "setting.global_transitions.title": "Fix global transitions (zone loading screens)",
-  "setting.diagnostic_log.title": "Write a diagnostic report to the mod log at each transition (for bug reports)"
+  "setting.diagnostic_log.title": "Write a diagnostic report to the mod log at each transition (for bug reports)",
+  "setting.creature_list_shortcut.title": "Shortcut that opens the list of raised creatures",
+  "setting.creature_list_shortcut.waiting": "Press the new shortcut (click again to cancel)",
+  "creature_list.title": "Raised creatures",
+  "creature_list.help": "Choose who comes with you. A creature that stays waits in this area: come back here to take it with you again.",
+  "creature_list.empty": "No raised creature in this area.",
+  "creature_list.unavailable": "This list is turned off because the mod could not follow the saves of the game. Every raised creature follows you, as before.",
+  "creature_list.follows": "Comes with you",
+  "creature_list.stays": "Stays in this area",
+  "creature_list.close": "Close"
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using Kingmaker;
@@ -47,7 +48,7 @@ namespace SummonsTransitionFix
 
                 foreach (var state in TransitionRules.SelectAreaStates(mainState, area.GetAdditionalSceneStates()))
                 {
-                    var minions = state.AllEntityData.OfType<UnitEntityData>().Where(Minions.IsPlayerMinion).ToList();
+                    var minions = state.AllEntityData.OfType<UnitEntityData>().Where(Minions.IsTakenAlong).ToList();
 
                     foreach (var minion in minions)
                     {
@@ -67,8 +68,12 @@ namespace SummonsTransitionFix
     [HarmonyPatch(typeof(AreaEnterPoint), nameof(AreaEnterPoint.PositionCharacters))]
     public static class AreaEnterPoint_PositionCharacters_Patch
     {
+        private static readonly List<UnitEntityData> s_BroughtBack = new List<UnitEntityData>();
+
         public static void Prefix(AreaEnterPoint __instance)
         {
+            s_BroughtBack.Clear();
+
             if (!Main.HandlesGlobalTransitions) return;
 
             try
@@ -86,6 +91,8 @@ namespace SummonsTransitionFix
                     Main.Logger?.Log($"[SummonsTransitionFix] Moved {minion.CharacterName} back to MainState.");
                 }
 
+                s_BroughtBack.AddRange(minions);
+
                 if (minions.Count > 0)
                 {
                     Game.Instance.Player?.InvalidateCharacterLists();
@@ -100,6 +107,7 @@ namespace SummonsTransitionFix
         public static void Postfix(AreaEnterPoint __instance)
         {
             PlaceMinionsNextToTheirMaster();
+            s_BroughtBack.Clear();
             Diagnostics.ReportUnits("Arrived");
         }
 
@@ -115,7 +123,7 @@ namespace SummonsTransitionFix
 
                 var minions = TransitionRules.SelectAreaStates(mainState, area.GetAdditionalSceneStates())
                     .SelectMany(state => state.AllEntityData.OfType<UnitEntityData>())
-                    .Where(Minions.IsPlayerMinion)
+                    .Where(unit => Minions.IsTakenAlong(unit) || s_BroughtBack.Contains(unit))
                     .ToList();
 
                 foreach (var unit in minions)

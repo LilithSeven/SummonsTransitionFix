@@ -1,5 +1,14 @@
 {
   "setting.local_transitions.title": "Corriger les transitions locales (portes, entrées de grottes...)",
   "setting.global_transitions.title": "Corriger les transitions globales (écrans de chargement de zone)",
-  "setting.diagnostic_log.title": "Écrire un rapport de diagnostic dans le journal du mod à chaque transition (pour signaler un bug)"
+  "setting.diagnostic_log.title": "Écrire un rapport de diagnostic dans le journal du mod à chaque transition (pour signaler un bug)",
+  "setting.creature_list_shortcut.title": "Raccourci qui ouvre la liste des créatures relevées",
+  "setting.creature_list_shortcut.waiting": "Appuyez sur le nouveau raccourci (cliquez de nouveau pour annuler)",
+  "creature_list.title": "Créatures relevées",
+  "creature_list.help": "Choisissez qui vous accompagne. Une créature qui reste attend dans cette zone : revenez ici pour la reprendre.",
+  "creature_list.empty": "Aucune créature relevée dans cette zone.",
+  "creature_list.unavailable": "Cette liste est désactivée : le mod n'a pas pu suivre les sauvegardes du jeu. Toutes les créatures relevées vous suivent, comme avant.",
+  "creature_list.follows": "Vous accompagne",
+  "creature_list.stays": "Reste dans cette zone",
+  "creature_list.close": "Fermer"
 }

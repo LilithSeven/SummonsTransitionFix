@@ -19,6 +19,7 @@
 
 !/src/
 /src/*
+!/src/CreatureListWindow.cs
 !/src/Diagnostics.cs
 !/src/Localization.cs
 !/src/Main.cs
@@ -26,4 +27,7 @@
 !/src/Minions.cs
 !/src/Patches.cs
 !/src/Settings.cs
+!/src/ShortcutRules.cs
+!/src/StayList.cs
+!/src/StayRules.cs
 !/src/TransitionRules.cs
