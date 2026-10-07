@@ -17,7 +17,8 @@ When you leave an area, the mod takes your active minions along with the party. 
 
 - **Summons and reanimated minions**: regular summons, undead raised with Repurpose or Flay for Purpose, and creatures bound by Doom of Servitude.
 - **Only your minions**: companions (active or in reserve), pets, mounts and NPCs are left alone. Dead minions stay behind.
-- **No marching order**: minions appear next to their master instead of taking a slot in the party formation.
+- **You choose who stays**: a list of your raised creatures lets you leave some of them in an area and take them back later.
+- **Optional formation settings**: summons and raised creatures can take a place in the party formation instead of trailing behind. Disabled by default.
 - **Light on your saves**: the mod adds no data of its own to your save files.
 
 If you run into a problem, let me know on the Nexus page. The place and the creature involved help a lot.
@@ -26,17 +27,38 @@ If you run into a problem, let me know on the Nexus page. The place and the crea
 
 Open the Unity Mod Manager menu (`Ctrl + F10`):
 
-1. **Enable Local Transitions** (default: enabled)
+1. **Fix local transitions** (default: enabled)
    Summons and minions go through doors, athletics or mobility checks, and caves along with their masters.
-2. **Enable Global Transitions** (default: enabled)
+2. **Fix global transitions** (default: enabled)
    Minions follow your party across loading screens and world map travel.
+3. **Diagnostic report** (default: disabled)
+   Writes what the mod sees at each transition to the Unity Mod Manager log. If a creature refuses to follow you, turn it on, go through one loading screen with that creature, and send me the lines marked `[Diagnostic]`.
+
+### The list of raised creatures
+
+Press `Ctrl + F9` to open the list of the creatures you raised with a Lich spell in the current area. You can change the shortcut in the mod settings, where the same list is shown. For each creature, choose **Comes with you** or **Stays in this area**.
+
+- A creature that stays simply waits where you left it. Go back to that area and tick it again to take it with you.
+- Creatures left in other areas are listed with the name of the area. The **Forget** button cancels the order.
+- The list is kept in the mod's own settings file and follows your saves: loading an older save brings back the choices you had made at that time.
+- A creature left in an area you can never visit again is lost, as it would be without the mod.
+
+### Formation (optional)
+
+Three settings, all disabled by default. Each one comes with fine tuning sliders and a button to restore the default values.
+
+1. **Summons and raised creatures take a place in the formation**
+   Melee creatures walk ahead of the party and the others behind it, instead of trailing behind their master.
+2. **Slow summons keep up with their master**
+   A summon slower than its master moves at its master's speed while it follows.
+3. **Smarter automatic formation for the party**
+   Only when the party uses the automatic formation of the game. Four lines: tanks, melee fighters, support, ranged. This is the only setting that concerns your companions: it changes where they stand in the formation, and nothing is written to the save.
 
 ### Managing your minions
 
 - **Natural lifespan**: summons still fade out after their normal spell duration. No change here.
-- **Too many minions**: if you have a small army of undead and want to leave some behind, turn off either option before you move to a new area.
+- **Too many minions**: use the list to leave raised creatures in an area. To leave everything behind, summons included, turn off the two transition options before you move to a new area.
 - **Lich ability**: you can always use "Cancel Repurpose" to dismiss reanimated minions by hand.
-
 ## Installation
 
 1. Install **Unity Mod Manager** (UMM).
