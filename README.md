@@ -25,7 +25,9 @@ If you run into a problem, let me know on the Nexus page. The place and the crea
 
 ## Settings
 
-Open the Unity Mod Manager menu (`Ctrl + F10`):
+**Nothing in this mod is locked.** Open the Unity Mod Manager menu (`Ctrl + F10`) and click on the mod: every option has its own checkbox, the shortcut of the list can be rebound, and the formation settings come with sliders for every distance and spacing. If your minions walk too close, too far or too wide for your taste, move the sliders until it suits your party. Changes apply while you play, no restart needed, and one button restores the default values.
+
+The main options:
 
 1. **Fix local transitions** (default: enabled)
    Summons and minions go through doors, athletics or mobility checks, and caves along with their masters.
@@ -45,7 +47,9 @@ Press `Ctrl + F9` to open the list of the creatures you raised with a Lich spell
 
 ### Formation (optional)
 
-Three settings, all disabled by default. Each one comes with fine tuning sliders and a button to restore the default values.
+Three settings, all disabled by default. Tick the ones you want.
+
+Each one can be tuned: click **Show the fine tuning** to reach the sliders (distance ahead of the party, distance behind it, side spacing, width of the free lane in the middle, and more). **Restore the default values** brings everything back.
 
 1. **Summons and raised creatures take a place in the formation**
    Melee creatures walk ahead of the party and the others behind it, instead of trailing behind their master.
@@ -77,3 +81,8 @@ The zip is written to the `bin` folder.
 
 Developed by **LilithSeven**. Source code on [GitHub](https://github.com/LilithSeven/SummonsTransitionFix).
 Licensed under the **MIT License**.
+
+Thanks to:
+
+- [Unity Mod Manager](https://www.nexusmods.com/site/mods/21) by newman55, which loads the mod and provides its settings window.
+- [Harmony](https://github.com/pardeike/Harmony) by Andreas Pardeike, the library the mod uses to change the behaviour of the game.
