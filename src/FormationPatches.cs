@@ -42,6 +42,7 @@ namespace SummonsTransitionFix
             try
             {
                 var minions = Minions.SelectPlayerMinions(followers);
+                FormationActivity.Count(minions.Count, followers.Count - minions.Count);
                 if (minions.Count == 0) return true;
 
                 var leaderUnit = leader.Owner;
@@ -78,6 +79,26 @@ namespace SummonsTransitionFix
                 FormationFailures.Report("Arranging the automatic party formation", ex);
                 return true;
             }
+        }
+    }
+
+    public static class FormationActivity
+    {
+        private static int s_FollowersPlacedByMod;
+        private static int s_FollowersLeftToGame;
+
+        public static void Count(int placedByMod, int leftToGame)
+        {
+            s_FollowersPlacedByMod += placedByMod;
+            s_FollowersLeftToGame += leftToGame;
+        }
+
+        public static string DescribeAndReset()
+        {
+            var description = $"{s_FollowersPlacedByMod} placement(s) by the mod, {s_FollowersLeftToGame} left to the game";
+            s_FollowersPlacedByMod = 0;
+            s_FollowersLeftToGame = 0;
+            return description;
         }
     }
 

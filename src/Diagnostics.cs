@@ -5,6 +5,7 @@ using System.Reflection;
 using Kingmaker;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.UnitLogic.Parts;
 
 namespace SummonsTransitionFix
 {
@@ -40,6 +41,7 @@ namespace SummonsTransitionFix
                 }
 
                 Write($"{moment}. {reported} unit(s) reported.");
+                Write($"{moment}. {ReportFollowers()} follower(s) reported. Formation setting: {Main.ModSettings?.EnableMinionFormation}. Since the last report: {FormationActivity.DescribeAndReset()}.");
             }
             catch (Exception ex)
             {
@@ -58,6 +60,30 @@ namespace SummonsTransitionFix
             }
 
             return units.Count;
+        }
+
+        private static int ReportFollowers()
+        {
+            var units = StayList.ListLoadedUnits();
+            if (units == null) return 0;
+
+            var reported = 0;
+
+            foreach (var leader in units)
+            {
+                var followers = leader.Get<UnitPartFollowedByUnits>()?.Followers;
+                if (followers == null) continue;
+
+                foreach (var follower in followers)
+                {
+                    if (follower == null) continue;
+
+                    Write($"  [follower] leader={leader.CharacterName} leaderVerdict={Minions.Classify(leader)} unit={follower.CharacterName} blueprint={follower.Blueprint?.name ?? "none"} verdict={Minions.Classify(follower)} placedByMod={Minions.IsPlayerMinion(follower)} inGame={follower.IsInGame}");
+                    reported++;
+                }
+            }
+
+            return reported;
         }
 
         private static IEnumerable<string> DescribeBuffs(UnitEntityData unit)
