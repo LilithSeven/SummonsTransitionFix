@@ -144,17 +144,20 @@ namespace SummonsTransitionFix
             return false;
         }
 
-        public bool LeadsOnlyPlayerMinions(TUnit? leader, IEnumerable<TUnit?>? followers)
+        public List<TUnit> SelectPlayerMinions(IEnumerable<TUnit?>? followers)
         {
-            if (followers == null || !IsPartyMemberOrPet(leader)) return false;
+            var minions = new List<TUnit>();
+            if (followers == null) return minions;
 
             foreach (var follower in followers)
             {
-                if (!facts.Exists(follower) || facts.IsDead(follower!)) continue;
-                if (!IsPlayerMinion(follower)) return false;
+                if (IsPlayerMinion(follower))
+                {
+                    minions.Add(follower!);
+                }
             }
 
-            return true;
+            return minions;
         }
 
         public static bool IsServitudeBuffName(string? name)

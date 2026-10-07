@@ -50,9 +50,9 @@ namespace SummonsTransitionFix
             return Rules.IsPartyMemberOrPet(unit);
         }
 
-        public static bool LeadsOnlyPlayerMinions(UnitPartFollowedByUnits? leader)
+        public static List<UnitEntityData> SelectPlayerMinions(IEnumerable<UnitEntityData?>? followers)
         {
-            return leader != null && Rules.LeadsOnlyPlayerMinions(leader.Owner, leader.Followers);
+            return Rules.SelectPlayerMinions(followers);
         }
 
         public static void MoveEntityWithoutDispose(SceneEntitiesState from, SceneEntitiesState to, UnitEntityData unit)

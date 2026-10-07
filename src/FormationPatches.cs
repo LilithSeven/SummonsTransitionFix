@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using Kingmaker.Controllers.Units;
 using Kingmaker.EntitySystem.Entities;
@@ -34,42 +35,27 @@ namespace SummonsTransitionFix
     [HarmonyPatch(typeof(FollowersFormationController), "PrepareFormation")]
     public static class FollowersFormationController_PrepareFormation_Patch
     {
-        public static bool Prefix(UnitPartFollowedByUnits leader, IList<UnitEntityData> followers, Vector3 position, Dictionary<UnitEntityData, FollowerActionType> desiredActions)
+        public static bool Prefix(UnitPartFollowedByUnits leader, ref IList<UnitEntityData> followers, Vector3 position, Dictionary<UnitEntityData, FollowerActionType> desiredActions)
         {
-            if (!Main.PlacesMinionsInFormation) return true;
+            if (!Main.PlacesMinionsInFormation || leader?.Owner == null || followers == null) return true;
 
             try
             {
-                if (!Minions.LeadsOnlyPlayerMinions(leader)) return true;
+                var minions = Minions.SelectPlayerMinions(followers);
+                if (minions.Count == 0) return true;
 
-                FollowerPlacement.Prepare(leader, followers, position, desiredActions);
-                return false;
+                var leaderUnit = leader.Owner;
+                var anchor = position == leaderUnit.Position ? position : FollowerPlacement.GetUnitDestination(leaderUnit);
+                FollowerPlacement.Prepare(leader, minions, anchor, desiredActions);
+
+                if (minions.Count == followers.Count) return false;
+
+                followers = followers.Where(follower => !minions.Contains(follower)).ToList();
+                return true;
             }
             catch (Exception ex)
             {
                 FormationFailures.Report("Placing raised creatures in the formation", ex);
-                return true;
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(FollowersFormationController), "GetFollowersFrontPosition")]
-    public static class FollowersFormationController_GetFollowersFrontPosition_Patch
-    {
-        public static bool Prefix(UnitEntityData leader, ref Vector3 __result)
-        {
-            if (!Main.PlacesMinionsInFormation || leader == null) return true;
-
-            try
-            {
-                if (!Minions.LeadsOnlyPlayerMinions(leader.Get<UnitPartFollowedByUnits>())) return true;
-
-                __result = FollowerPlacement.GetUnitDestination(leader);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                FormationFailures.Report("Finding where raised creatures gather", ex);
                 return true;
             }
         }
