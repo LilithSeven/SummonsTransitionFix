@@ -19,7 +19,7 @@ namespace SummonsTransitionFix
         public float SummonCorridorWidth = 2.0f;
         public float SummonRepathDistance = 4.0f;
         public float SummonCatchUpFactor = 1.1f;
-        public float RaisedFrontPush = 4.0f;
+        public float RaisedFrontPush = 5.5f;
         public float RaisedLineGap = 2.8f;
         public float RaisedLateralSpacing = 2.4f;
         public float RaisedCorridorWidth = 1.8f;
