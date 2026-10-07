@@ -39,6 +39,8 @@ namespace SummonsTransitionFix
 
             if (!Main.HandlesGlobalTransitions) return;
 
+            StayList.ReviewLoadedArea();
+
             try
             {
                 var crossState = Game.Instance.Player?.CrossSceneState;

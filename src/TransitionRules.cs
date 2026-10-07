@@ -29,6 +29,11 @@ namespace SummonsTransitionFix
             return verdict == MinionVerdict.BoundByServitude;
         }
 
+        public static bool EndsStayOrder(MinionVerdict verdict)
+        {
+            return verdict == MinionVerdict.Dead;
+        }
+
         public static bool IsTakenAlong(MinionVerdict verdict, bool staysInArea)
         {
             if (verdict == MinionVerdict.SummonedByParty) return true;

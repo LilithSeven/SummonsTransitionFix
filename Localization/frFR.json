@@ -36,5 +36,8 @@
   "creature_list.unavailable": "Cette liste est désactivée : le mod n'a pas pu suivre les sauvegardes du jeu. Toutes les créatures relevées vous suivent, comme avant.",
   "creature_list.follows": "Vous accompagne",
   "creature_list.stays": "Reste dans cette zone",
+  "creature_list.elsewhere": "Laissées dans une autre zone (dernier endroit où le mod les a vues). Le bouton Oublier annule l'ordre : si la créature existe encore, elle repartira avec vous à votre prochaine visite dans cette zone.",
+  "creature_list.forget": "Oublier",
+  "creature_list.unknown_area": "zone inconnue",
   "creature_list.close": "Fermer"
 }

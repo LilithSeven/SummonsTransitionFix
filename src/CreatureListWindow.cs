@@ -19,6 +19,7 @@ namespace SummonsTransitionFix
         private const float ShortcutButtonWidth = 420f;
 
         private static readonly List<CreatureRow> s_Rows = new List<CreatureRow>();
+        private static readonly List<StayEntry> s_Elsewhere = new List<StayEntry>();
         private static bool s_Open;
         private static bool s_Positioned;
         private static bool s_WaitingForShortcut;
@@ -145,7 +146,6 @@ namespace SummonsTransitionFix
             if (s_Rows.Count == 0)
             {
                 GUILayout.Label(Localization.GetString("creature_list.empty"));
-                return;
             }
 
             foreach (var row in s_Rows)
@@ -161,6 +161,32 @@ namespace SummonsTransitionFix
                 if (follows == staying)
                 {
                     StayList.SetStaying(row.Creature, !follows);
+                }
+            }
+
+            DrawCreaturesLeftElsewhere();
+        }
+
+        private static void DrawCreaturesLeftElsewhere()
+        {
+            if (s_Elsewhere.Count == 0) return;
+
+            GUILayout.Space(10f);
+            GUILayout.Label(Localization.GetString("creature_list.elsewhere"));
+
+            foreach (var creature in s_Elsewhere)
+            {
+                string name = string.IsNullOrEmpty(creature.CreatureName) ? "?" : creature.CreatureName;
+                string area = string.IsNullOrEmpty(creature.AreaName) ? Localization.GetString("creature_list.unknown_area") : creature.AreaName;
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label($"{name}  ({area})", GUILayout.Width(NameWidth));
+                bool forgotten = GUILayout.Button(Localization.GetString("creature_list.forget"), GUILayout.Width(ButtonWidth));
+                GUILayout.EndHorizontal();
+
+                if (forgotten)
+                {
+                    StayList.Forget(creature);
                 }
             }
         }
@@ -180,6 +206,7 @@ namespace SummonsTransitionFix
         {
             Localization.UpdateLocale();
             s_Rows.Clear();
+            s_Elsewhere.Clear();
             s_Open = true;
             s_Positioned = false;
             s_Scroll = Vector2.zero;
@@ -224,34 +251,24 @@ namespace SummonsTransitionFix
         private static void RefreshRows()
         {
             s_Rows.Clear();
+            s_Elsewhere.Clear();
 
             try
             {
-                var game = Game.Instance;
-                var area = game?.LoadedAreaState;
-                var mainState = area?.MainState;
-                if (game?.Player == null || area == null || mainState == null) return;
+                var units = StayList.ListLoadedUnits();
+                if (units == null) return;
 
-                var states = TransitionRules.SelectAreaStates(mainState, area.GetAdditionalSceneStates());
-                var crossState = game.Player.CrossSceneState;
-                if (crossState != null && !states.Contains(crossState))
-                {
-                    states.Add(crossState);
-                }
-
-                var creatures = states
-                    .SelectMany(state => state.AllEntityData.OfType<UnitEntityData>())
-                    .Where(unit => unit.IsInGame && Minions.CanBeToldToStay(unit))
-                    .Distinct();
-
-                foreach (var creature in creatures)
+                foreach (var creature in units.Where(unit => unit.IsInGame && Minions.CanBeToldToStay(unit)))
                 {
                     s_Rows.Add(new CreatureRow(creature, $"{creature.CharacterName}  ({creature.HPLeft}/{creature.MaxHP})"));
                 }
+
+                s_Elsewhere.AddRange(StayList.ReviewLoadedArea(units));
             }
             catch (Exception ex)
             {
                 s_Rows.Clear();
+                s_Elsewhere.Clear();
                 Main.Logger?.Error($"[SummonsTransitionFix] Failed to list the raised creatures: {ex}");
             }
         }

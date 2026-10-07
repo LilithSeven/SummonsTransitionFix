@@ -36,5 +36,8 @@
   "creature_list.unavailable": "This list is turned off because the mod could not follow the saves of the game. Every raised creature follows you, as before.",
   "creature_list.follows": "Comes with you",
   "creature_list.stays": "Stays in this area",
+  "creature_list.elsewhere": "Left in another area (last place the mod saw them). The Forget button cancels the order: if the creature still exists, it will leave with you the next time you visit that area.",
+  "creature_list.forget": "Forget",
+  "creature_list.unknown_area": "unknown area",
   "creature_list.close": "Close"
 }

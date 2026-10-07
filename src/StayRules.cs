@@ -9,6 +9,10 @@ namespace SummonsTransitionFix
         public string GameId = string.Empty;
 
         public string UnitId = string.Empty;
+
+        public string CreatureName = string.Empty;
+
+        public string AreaName = string.Empty;
     }
 
     public class StaySnapshot
@@ -21,7 +25,7 @@ namespace SummonsTransitionFix
 
         public long WrittenAtUtcTicks;
 
-        public List<string> UnitIds = new List<string>();
+        public List<StayEntry> Creatures = new List<StayEntry>();
     }
 
     public static class StayRules
@@ -38,7 +42,7 @@ namespace SummonsTransitionFix
             return entries.Any(entry => IsEntryFor(entry, gameId, unitId));
         }
 
-        public static bool SetStaying(List<StayEntry>? entries, string? gameId, string? unitId, bool staying)
+        public static bool SetStaying(List<StayEntry>? entries, string? gameId, string? unitId, bool staying, string? creatureName = null, string? areaName = null)
         {
             if (entries == null || string.IsNullOrEmpty(gameId) || string.IsNullOrEmpty(unitId)) return false;
 
@@ -48,7 +52,7 @@ namespace SummonsTransitionFix
 
             if (staying)
             {
-                entries.Add(new StayEntry { GameId = gameId!, UnitId = unitId! });
+                entries.Add(Copy(gameId!, unitId!, creatureName, areaName));
 
                 while (entries.Count > MaximumEntries)
                 {
@@ -57,6 +61,36 @@ namespace SummonsTransitionFix
             }
 
             return true;
+        }
+
+        public static bool Describe(IEnumerable<StayEntry?>? entries, string? gameId, string? unitId, string? creatureName, string? areaName)
+        {
+            if (entries == null || string.IsNullOrEmpty(gameId) || string.IsNullOrEmpty(unitId)) return false;
+
+            var entry = entries.FirstOrDefault(candidate => IsEntryFor(candidate, gameId, unitId));
+            if (entry == null) return false;
+
+            string newCreatureName = string.IsNullOrEmpty(creatureName) ? entry.CreatureName ?? string.Empty : creatureName!;
+            string newAreaName = string.IsNullOrEmpty(areaName) ? entry.AreaName ?? string.Empty : areaName!;
+            if (HasNames(entry, newCreatureName, newAreaName)) return false;
+
+            entry.CreatureName = newCreatureName;
+            entry.AreaName = newAreaName;
+
+            return true;
+        }
+
+        public static List<StayEntry> ListAbsent(IEnumerable<StayEntry?>? entries, string? gameId, ICollection<string>? presentUnitIds)
+        {
+            if (string.IsNullOrEmpty(gameId)) return new List<StayEntry>();
+
+            var absent = CreaturesOf(entries, gameId);
+            if (presentUnitIds != null)
+            {
+                absent.RemoveAll(creature => presentUnitIds.Contains(creature.UnitId));
+            }
+
+            return absent;
         }
 
         public static bool RememberSave(
@@ -72,8 +106,13 @@ namespace SummonsTransitionFix
             int removed = snapshots.RemoveAll(snapshot =>
                 snapshot == null || IsSnapshotOf(snapshot, gameId, playedTicks, writtenAtLocalTicks, writtenAtUtcTicks));
 
-            var unitIds = UnitIdsOf(entries, gameId);
-            if (unitIds.Count == 0) return removed > 0;
+            var creatures = CreaturesOf(entries, gameId);
+            if (creatures.Count == 0) return removed > 0;
+
+            foreach (var creature in creatures)
+            {
+                creature.GameId = string.Empty;
+            }
 
             snapshots.Add(new StaySnapshot
             {
@@ -81,7 +120,7 @@ namespace SummonsTransitionFix
                 PlayedTicks = playedTicks,
                 WrittenAtLocalTicks = writtenAtLocalTicks,
                 WrittenAtUtcTicks = writtenAtUtcTicks,
-                UnitIds = unitIds,
+                Creatures = creatures,
             });
 
             while (snapshots.Count > MaximumSnapshots)
@@ -107,20 +146,17 @@ namespace SummonsTransitionFix
                 .OrderBy(candidate => Math.Abs(candidate!.WrittenAtUtcTicks - writtenAtUtcTicks))
                 .FirstOrDefault();
 
-            var savedUnitIds = (snapshot?.UnitIds ?? new List<string>())
-                .Where(unitId => !string.IsNullOrEmpty(unitId))
-                .Distinct(StringComparer.Ordinal)
-                .ToList();
-            var currentUnitIds = UnitIdsOf(entries, gameId);
+            var saved = CreaturesOf(snapshot?.Creatures?.Select(creature => creature == null ? null : Copy(gameId!, creature.UnitId, creature.CreatureName, creature.AreaName)), gameId);
+            var current = CreaturesOf(entries, gameId);
 
-            bool hasNullEntries = entries.Any(entry => entry == null);
-            if (!hasNullEntries && savedUnitIds.Count == currentUnitIds.Count && !savedUnitIds.Except(currentUnitIds, StringComparer.Ordinal).Any())
+            int storedCount = entries.Count(entry => entry == null || IsSameGame(entry, gameId));
+            if (storedCount == current.Count && DescribeTheSameCreatures(saved, current))
             {
                 return false;
             }
 
             entries.RemoveAll(entry => entry == null || IsSameGame(entry, gameId));
-            entries.AddRange(savedUnitIds.Select(unitId => new StayEntry { GameId = gameId!, UnitId = unitId }));
+            entries.AddRange(saved);
 
             return true;
         }
@@ -132,13 +168,50 @@ namespace SummonsTransitionFix
             return entries.RemoveAll(entry => entry == null || IsSameGame(entry, gameId)) > 0;
         }
 
-        private static List<string> UnitIdsOf(IEnumerable<StayEntry?> entries, string? gameId)
+        private static StayEntry Copy(string gameId, string? unitId, string? creatureName, string? areaName)
         {
-            return entries
-                .Where(entry => entry != null && IsSameGame(entry, gameId) && !string.IsNullOrEmpty(entry.UnitId))
-                .Select(entry => entry!.UnitId)
-                .Distinct(StringComparer.Ordinal)
-                .ToList();
+            return new StayEntry
+            {
+                GameId = gameId,
+                UnitId = unitId ?? string.Empty,
+                CreatureName = creatureName ?? string.Empty,
+                AreaName = areaName ?? string.Empty,
+            };
+        }
+
+        private static List<StayEntry> CreaturesOf(IEnumerable<StayEntry?>? entries, string? gameId)
+        {
+            var creatures = new List<StayEntry>();
+            if (entries == null) return creatures;
+
+            foreach (var entry in entries)
+            {
+                if (entry == null || !IsSameGame(entry, gameId) || string.IsNullOrEmpty(entry.UnitId)) continue;
+                if (creatures.Any(known => string.Equals(known.UnitId, entry.UnitId, StringComparison.Ordinal))) continue;
+
+                creatures.Add(Copy(gameId ?? string.Empty, entry.UnitId, entry.CreatureName, entry.AreaName));
+            }
+
+            return creatures;
+        }
+
+        private static bool DescribeTheSameCreatures(List<StayEntry> first, List<StayEntry> second)
+        {
+            if (first.Count != second.Count) return false;
+
+            foreach (var creature in first)
+            {
+                var twin = second.FirstOrDefault(candidate => string.Equals(candidate.UnitId, creature.UnitId, StringComparison.Ordinal));
+                if (twin == null || !HasNames(twin, creature.CreatureName, creature.AreaName)) return false;
+            }
+
+            return true;
+        }
+
+        private static bool HasNames(StayEntry entry, string creatureName, string areaName)
+        {
+            return string.Equals(entry.CreatureName ?? string.Empty, creatureName, StringComparison.Ordinal)
+                && string.Equals(entry.AreaName ?? string.Empty, areaName, StringComparison.Ordinal);
         }
 
         private static bool IsSnapshotOf(StaySnapshot? snapshot, string? gameId, long playedTicks, long writtenAtLocalTicks, long writtenAtUtcTicks)
