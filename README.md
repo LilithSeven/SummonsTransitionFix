@@ -15,8 +15,9 @@ In the base game, temporary minions are tied to the spot where you summoned them
 
 When you leave an area, the mod takes your active minions along with the party. When the new area loads, it puts them right back at their master's side.
 
-- **Summons and reanimated minions**: regular summons, undead raised with Repurpose or Flay for Purpose, and creatures bound by Doom of Servitude.
+- **Summons and reanimated minions**: regular summons, undead raised with Repurpose or Flay for Purpose, and creatures bound by Doom to Servitude.
 - **Only your minions**: companions (active or in reserve), pets, mounts and NPCs are left alone. Dead minions stay behind.
+- **Loyal raised creatures**: a dispel or an effect that suppresses spells can no longer turn your raised creatures against you.
 - **You choose who stays**: a list of your raised creatures lets you leave some of them in an area and take them back later.
 - **Optional formation settings**: summons and raised creatures can take a place in the party formation instead of trailing behind. Disabled by default.
 - **Light on your saves**: the mod adds no data of its own to your save files.
@@ -33,7 +34,9 @@ The main options:
    Summons and minions go through doors, athletics or mobility checks, and caves along with their masters.
 2. **Fix global transitions** (default: enabled)
    Minions follow your party across loading screens and world map travel.
-3. **Diagnostic report** (default: disabled)
+3. **Raised creatures stay loyal** (default: enabled)
+   A creature raised with Repurpose, Flay for Purpose or Doom to Servitude stops serving you only when it dies or when you use Dismiss Repurpose. Dispels (Baphomet's Word included) and effects that suppress spells cannot break the bond. Untick it to get the base game rules back.
+4. **Diagnostic report** (default: disabled)
    Writes what the mod sees at each transition to the Unity Mod Manager log. If a creature refuses to follow you, turn it on, go through one loading screen with that creature, and send me the lines marked `[Diagnostic]`.
 
 ### The list of raised creatures
@@ -62,7 +65,8 @@ Each one can be tuned: click **Show the fine tuning** to reach the sliders (dist
 
 - **Natural lifespan**: summons still fade out after their normal spell duration. No change here.
 - **Too many minions**: use the list to leave raised creatures in an area. To leave everything behind, summons included, turn off the two transition options before you move to a new area.
-- **Lich ability**: you can always use "Cancel Repurpose" to dismiss reanimated minions by hand.
+- **Lich ability**: you can always use "Dismiss Repurpose" to dismiss a reanimated minion by hand.
+
 ## Installation
 
 1. Install **Unity Mod Manager** (UMM).
