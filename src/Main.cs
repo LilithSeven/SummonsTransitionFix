@@ -41,19 +41,40 @@ namespace SummonsTransitionFix
 
             Localization.Init(modEntry.Path);
 
-            try
-            {
-                var harmony = new Harmony(modEntry.Info.Id);
-                harmony.PatchAll(Assembly.GetExecutingAssembly());
-            }
-            catch (Exception ex)
-            {
-                Logger?.Error($"[SummonsTransitionFix] Failed to apply Harmony patches: {ex}");
-            }
+            ApplyPatches(new Harmony(modEntry.Info.Id));
 
             StayList.StartFollowingSaves(new Harmony(modEntry.Info.Id));
 
             return true;
+        }
+
+        private static void ApplyPatches(Harmony harmony)
+        {
+            Type[] types;
+
+            try
+            {
+                types = AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly());
+            }
+            catch (Exception ex)
+            {
+                Logger?.Error($"[SummonsTransitionFix] Failed to apply Harmony patches: {ex}");
+                return;
+            }
+
+            foreach (var type in types)
+            {
+                if (!type.IsDefined(typeof(HarmonyPatch), false)) continue;
+
+                try
+                {
+                    harmony.CreateClassProcessor(type).Patch();
+                }
+                catch (Exception ex)
+                {
+                    Logger?.Error($"[SummonsTransitionFix] Failed to apply the Harmony patch {type.Name}, the other patches are still applied: {ex}");
+                }
+            }
         }
 
         private static bool OnToggle(UnityModManager.ModEntry modEntry, bool value)
