@@ -93,7 +93,8 @@ namespace SummonsTransitionFix
 
             foreach (var buff in buffs)
             {
-                yield return $"{buff.Blueprint?.name ?? "none"} from {buff.Context?.MaybeCaster?.CharacterName ?? "nobody"}";
+                string bondFlags = LoyaltyGuard.GetKind(buff) == BondBuffKind.None ? string.Empty : $" (fromSpell={buff.IsFromSpell} notDispelable={buff.IsNotDispelable} suppressed={buff.IsSuppressed})";
+                yield return $"{buff.Blueprint?.name ?? "none"} from {buff.Context?.MaybeCaster?.CharacterName ?? "nobody"}{bondFlags}";
             }
         }
 
