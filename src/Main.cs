@@ -19,6 +19,8 @@ namespace SummonsTransitionFix
 
         public static bool WritesDiagnosticReport => TransitionRules.WritesDiagnosticReport(Enabled, ModSettings?.EnableDiagnosticLog);
 
+        public static bool KeepsRaisedCreaturesLoyal => TransitionRules.IsOptionOn(Enabled, ModSettings?.KeepRaisedCreaturesLoyal);
+
         public static bool PlacesMinionsInFormation => TransitionRules.IsOptionOn(Enabled, ModSettings?.EnableMinionFormation);
 
         public static bool ArrangesPartyFormation => TransitionRules.IsOptionOn(Enabled, ModSettings?.EnablePartyAutoFormation);
@@ -118,6 +120,12 @@ namespace SummonsTransitionFix
                 ModSettings.EnableGlobalTransitions,
                 Localization.GetString("setting.global_transitions.title")
             );
+
+            ModSettings.KeepRaisedCreaturesLoyal = GUILayout.Toggle(
+                ModSettings.KeepRaisedCreaturesLoyal,
+                Localization.GetString("setting.raised_loyalty.title")
+            );
+            GUILayout.Label(Localization.GetString("setting.raised_loyalty.help"));
 
             ModSettings.EnableDiagnosticLog = GUILayout.Toggle(
                 ModSettings.EnableDiagnosticLog,

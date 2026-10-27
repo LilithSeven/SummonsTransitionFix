@@ -25,6 +25,9 @@
 !/src/FormationPatches.cs
 !/src/FormationSettingsPanel.cs
 !/src/Localization.cs
+!/src/LoyaltyGuard.cs
+!/src/LoyaltyPatches.cs
+!/src/LoyaltyRules.cs
 !/src/Main.cs
 !/src/MinionRules.cs
 !/src/Minions.cs

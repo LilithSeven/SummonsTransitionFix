@@ -10,6 +10,8 @@ namespace SummonsTransitionFix
 
         public bool EnableGlobalTransitions = true;
 
+        public bool KeepRaisedCreaturesLoyal = true;
+
         public bool EnableDiagnosticLog = false;
         public bool EnableMinionFormation = false;
         public bool EnableMinionSpeed = false;

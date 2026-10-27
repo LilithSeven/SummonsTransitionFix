@@ -50,6 +50,11 @@ namespace SummonsTransitionFix
             return Rules.IsPartyMemberOrPet(unit);
         }
 
+        public static bool IsBondProtected(UnitEntityData? servant, UnitEntityData? caster)
+        {
+            return Rules.IsBondProtected(servant, caster);
+        }
+
         public static List<UnitEntityData> SelectPlayerMinions(IEnumerable<UnitEntityData?>? followers)
         {
             return Rules.SelectPlayerMinions(followers);

@@ -1,6 +1,8 @@
 {
   "setting.local_transitions.title": "Fix local transitions (doors, cave entrances...)",
   "setting.global_transitions.title": "Fix global transitions (zone loading screens)",
+  "setting.raised_loyalty.title": "Raised creatures stay loyal",
+  "setting.raised_loyalty.help": "A creature raised with Repurpose, Flay for Purpose or Doom to Servitude stops serving you only when it dies or when you use Dismiss Repurpose. Dispels, Baphomet's Word included, and effects that suppress spells cannot turn it against you. Off: the base game rules apply.",
   "setting.diagnostic_log.title": "Write a diagnostic report to the mod log at each transition (for bug reports)",
   "formation.title": "Formation (optional)",
   "setting.minion_formation.title": "Summons and raised creatures take a place in the formation",

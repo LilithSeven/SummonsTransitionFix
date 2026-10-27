@@ -144,6 +144,15 @@ namespace SummonsTransitionFix
             return false;
         }
 
+        public bool IsBondProtected(TUnit? servant, TUnit? caster)
+        {
+            if (!facts.Exists(servant)) return false;
+            if (facts.IsDead(servant!)) return false;
+            if (IsPartyMemberOrPet(servant)) return false;
+
+            return facts.Exists(caster) && IsPartyMemberOrPet(caster);
+        }
+
         public List<TUnit> SelectPlayerMinions(IEnumerable<TUnit?>? followers)
         {
             var minions = new List<TUnit>();

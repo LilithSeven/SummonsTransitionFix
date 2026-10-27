@@ -22,7 +22,7 @@ namespace SummonsTransitionFix
                 var mainState = area?.MainState;
                 var version = Assembly.GetExecutingAssembly().GetName().Version;
 
-                Write($"{moment}. Mod version {version}. Area: {game.CurrentlyLoadedArea?.name ?? "none"}. Local setting: {Main.ModSettings?.EnableLocalTransitions}. Global setting: {Main.ModSettings?.EnableGlobalTransitions}.");
+                Write($"{moment}. Mod version {version}. Area: {game.CurrentlyLoadedArea?.name ?? "none"}. Local setting: {Main.ModSettings?.EnableLocalTransitions}. Global setting: {Main.ModSettings?.EnableGlobalTransitions}. Loyalty setting: {Main.ModSettings?.KeepRaisedCreaturesLoyal}.");
 
                 var reported = 0;
 

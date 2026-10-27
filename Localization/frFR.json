@@ -1,6 +1,8 @@
 {
   "setting.local_transitions.title": "Corriger les transitions locales (portes, entrées de grottes...)",
   "setting.global_transitions.title": "Corriger les transitions globales (écrans de chargement de zone)",
+  "setting.raised_loyalty.title": "Les créatures relevées restent fidèles",
+  "setting.raised_loyalty.help": "Une créature relevée par Reconversion, Mourir pour servir ou Destin de servitude ne cesse de vous servir qu'à sa mort ou quand vous utilisez Annulation de Reconversion. Les dissipations, Parole de Baphomet comprise, et les effets qui suppriment les sorts ne peuvent pas la retourner contre vous. Décoché : les règles du jeu de base s'appliquent.",
   "setting.diagnostic_log.title": "Écrire un rapport de diagnostic dans le journal du mod à chaque transition (pour signaler un bug)",
   "formation.title": "Formation (facultatif)",
   "setting.minion_formation.title": "Les invocations et les créatures relevées prennent place dans la formation",
