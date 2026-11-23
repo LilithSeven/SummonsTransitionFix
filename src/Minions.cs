@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Kingmaker;
+using Kingmaker.AreaLogic.SummonPool;
+using Kingmaker.Blueprints;
 using Kingmaker.EntitySystem;
 using Kingmaker.EntitySystem.Entities;
 using Kingmaker.UnitLogic.Buffs;
@@ -74,6 +76,8 @@ namespace SummonsTransitionFix
 
         private sealed class GameFacts : IMinionFacts<UnitEntityData, Buff>
         {
+            private static readonly HashSet<BlueprintGuid> AbilitySummonPoolGuids = new HashSet<BlueprintGuid>(AbilitySummonPools.Ids.Select(id => BlueprintGuid.Parse(id)));
+
             public bool Exists(UnitEntityData? unit)
             {
                 return unit != null;
@@ -136,6 +140,20 @@ namespace SummonsTransitionFix
             {
                 var summonedBuff = Game.Instance?.BlueprintRoot?.SystemMechanics?.SummonedUnitBuff;
                 return summonedBuff != null && unit.Buffs != null && unit.Buffs.HasFact(summonedBuff);
+            }
+
+            public bool IsInAbilitySummonPool(UnitEntityData unit)
+            {
+                var pools = unit.Get<SummonPool.PooledPart>()?.Pools;
+                return pools != null && pools.Any(pool => pool != null && AbilitySummonPoolGuids.Contains(pool.AssetGuid));
+            }
+
+            public bool IsBeingDestroyed(UnitEntityData unit)
+            {
+                if (unit.DestroyMark) return true;
+
+                var dismemberedBuff = Game.Instance?.BlueprintRoot?.SystemMechanics?.DismemberedUnitBuff;
+                return dismemberedBuff != null && unit.Buffs != null && unit.Buffs.HasFact(dismemberedBuff);
             }
 
             public IEnumerable<Buff>? GetBuffs(UnitEntityData unit)

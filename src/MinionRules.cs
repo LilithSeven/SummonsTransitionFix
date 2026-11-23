@@ -17,6 +17,8 @@ namespace SummonsTransitionFix
         bool HasSummonedPart(TUnit unit);
         TUnit? GetSummoner(TUnit unit);
         bool HasActiveSummonBuff(TUnit unit);
+        bool IsInAbilitySummonPool(TUnit unit);
+        bool IsBeingDestroyed(TUnit unit);
         IEnumerable<TBuff>? GetBuffs(TUnit unit);
         string? GetBuffName(TBuff buff);
         TUnit? GetBuffCaster(TBuff buff);
@@ -32,6 +34,25 @@ namespace SummonsTransitionFix
         NoLinkToParty,
         SummonedByParty,
         BoundByServitude,
+    }
+
+    public static class AbilitySummonPools
+    {
+        public static readonly string[] Ids =
+        {
+            "3218615b6f823ff4886e68fea9f5e3ca",
+            "dff3a1584dac107459064c2e48344df3",
+            "3179d260b5ccdc74ba6a33d12b5eb888",
+            "b833c7342783c3a4eaf116b830eb0129",
+            "cfb65b88ebacea4478f7a36a2891f944",
+            "3c177298b5d47f14b8f372bf4d76f7e7",
+            "0dd5520857fb4481be3a1c51799c258f",
+            "490248a826bbf904e852f5e3afa6d138",
+            "7c2be513c3b883141ae5ed0e121a18e5",
+            "87447d0b37f75be4f804aef5728384ac",
+            "134107951d5e4ce79efd088a43030387",
+            "6209440d54444594a7d92bebff1f7239",
+        };
     }
 
     public sealed class MinionRules<TUnit, TBuff> where TUnit : class
@@ -71,7 +92,7 @@ namespace SummonsTransitionFix
             if (!facts.IsPlayerFaction(unit!)) return MinionVerdict.NotPlayerFaction;
             if (IsPartyMemberOrPet(unit)) return MinionVerdict.PartyMemberOrPet;
 
-            if (facts.HasSummonedPart(unit!) && facts.HasActiveSummonBuff(unit!))
+            if (facts.HasSummonedPart(unit!) && (facts.HasActiveSummonBuff(unit!) || OutlivedItsAbilityRecast(unit!)))
             {
                 var summoner = facts.GetSummoner(unit!);
                 if (facts.Exists(summoner) && IsPartyMemberOrPet(summoner))
@@ -187,6 +208,11 @@ namespace SummonsTransitionFix
             }
 
             return false;
+        }
+
+        private bool OutlivedItsAbilityRecast(TUnit unit)
+        {
+            return facts.IsInAbilitySummonPool(unit) && !facts.IsBeingDestroyed(unit);
         }
 
         private TUnit? GetServitudeMaster(TUnit unit)
