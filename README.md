@@ -63,7 +63,7 @@ Each one can be tuned: click **Show the fine tuning** to reach the sliders (dist
 
 ### Managing your minions
 
-- **Natural lifespan**: summons still fade out after their normal spell duration. If an ability is used again and an older summon survives without its timer, that summon keeps following you until it dies.
+- **Natural lifespan**: summons still fade out after their normal spell duration. If an ability is used again and an older summon is still around, it keeps following you until it fades or dies. One that is about to vanish stays behind, as in the base game.
 - **Too many minions**: use the list to leave raised creatures in an area. To leave everything behind, summons included, turn off the two transition options before you move to a new area.
 - **Lich ability**: you can always use "Dismiss Repurpose" to dismiss a reanimated minion by hand.
 
