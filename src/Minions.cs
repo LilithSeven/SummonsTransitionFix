@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Kingmaker;
@@ -148,12 +149,17 @@ namespace SummonsTransitionFix
                 return pools != null && pools.Any(pool => pool != null && AbilitySummonPoolGuids.Contains(pool.AssetGuid));
             }
 
-            public bool IsBeingDestroyed(UnitEntityData unit)
+            public bool IsMarkedForDestruction(UnitEntityData unit)
             {
-                if (unit.DestroyMark) return true;
+                return unit.DestroyMark;
+            }
 
+            public TimeSpan? GetTimeBeforeVanishing(UnitEntityData unit)
+            {
                 var dismemberedBuff = Game.Instance?.BlueprintRoot?.SystemMechanics?.DismemberedUnitBuff;
-                return dismemberedBuff != null && unit.Buffs != null && unit.Buffs.HasFact(dismemberedBuff);
+                if (dismemberedBuff == null || unit.Buffs == null) return null;
+
+                return unit.Buffs.GetBuff(dismemberedBuff)?.TimeLeft;
             }
 
             public IEnumerable<Buff>? GetBuffs(UnitEntityData unit)

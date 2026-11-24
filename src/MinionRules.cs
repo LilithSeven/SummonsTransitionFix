@@ -18,7 +18,8 @@ namespace SummonsTransitionFix
         TUnit? GetSummoner(TUnit unit);
         bool HasActiveSummonBuff(TUnit unit);
         bool IsInAbilitySummonPool(TUnit unit);
-        bool IsBeingDestroyed(TUnit unit);
+        bool IsMarkedForDestruction(TUnit unit);
+        TimeSpan? GetTimeBeforeVanishing(TUnit unit);
         IEnumerable<TBuff>? GetBuffs(TUnit unit);
         string? GetBuffName(TBuff buff);
         TUnit? GetBuffCaster(TBuff buff);
@@ -58,6 +59,8 @@ namespace SummonsTransitionFix
     public sealed class MinionRules<TUnit, TBuff> where TUnit : class
     {
         public const string NoCompanionState = "None";
+
+        public static readonly TimeSpan VanishingSoonLimit = TimeSpan.FromMinutes(1);
 
         public static readonly string[] ServitudeBuffKeywords =
         {
@@ -212,7 +215,15 @@ namespace SummonsTransitionFix
 
         private bool OutlivedItsAbilityRecast(TUnit unit)
         {
-            return facts.IsInAbilitySummonPool(unit) && !facts.IsBeingDestroyed(unit);
+            return facts.IsInAbilitySummonPool(unit) && !IsVanishingSoon(unit);
+        }
+
+        private bool IsVanishingSoon(TUnit unit)
+        {
+            if (facts.IsMarkedForDestruction(unit)) return true;
+
+            var timeBeforeVanishing = facts.GetTimeBeforeVanishing(unit);
+            return timeBeforeVanishing.HasValue && timeBeforeVanishing.Value <= VanishingSoonLimit;
         }
 
         private TUnit? GetServitudeMaster(TUnit unit)
